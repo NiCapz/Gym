@@ -2,16 +2,16 @@
   <main>
     <div>
       <button @click="toggleRecording">{{ recordButtonText }}</button><br>
+      <hr class="ruler">
       <li v-for="transcriptionInList in transcriptionList">
-        <div class="transcriptionContainer">
+        <button class="playButton" @click="playAudio(transcriptionInList)">
           <span>{{ transcriptionInList }}</span>
-          <button class="playButton" @click="playAudio(transcriptionInList)">
-            <Icon icon="si:actions-fill" width="100" />
-          </button>
-        </div>
+        </button>
       </li><br>
-      <div v-if="transcription" class="transcriptionContainer">
-        <span>{{ transcription }}</span>
+      <div class="liveTranscript" v-if="transcription">
+        <button class="playButton" @click="playAudio(transcriptionInList)">
+          <span>{{ transcription }}</span>
+        </button>
       </div>
     </div>
   </main>
@@ -26,6 +26,7 @@ import { MediaRecorder, register } from 'extendable-media-recorder'
 import { connect } from 'extendable-media-recorder-wav-encoder'
 import { Client } from '@stomp/stompjs'
 import { Icon } from '@iconify/vue';
+import { Speechify } from '@speechify/api-sdk'
 </script>
 
 
@@ -51,11 +52,14 @@ export default {
 
       speech: null,
 
-      recordButtonText: 'Start Recording'
+      recordButtonText: 'Start Recording',
+
+      ttsSessionId: '',
     }
   },
 
   created() {
+
     // creating Websocket
     this.client = new Client({
       webSocketFactory: () => new WebSocket('ws:localhost:8080/transcription-websocket'),
@@ -71,6 +75,8 @@ export default {
   },
 
   methods: {
+
+
 
     playAudio(text) {
       this.speech.text = text;
