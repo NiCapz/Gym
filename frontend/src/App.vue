@@ -3,8 +3,9 @@
     <div>
       <button @click="toggleRecording">{{ recordButtonText }}</button><br>
       <hr class="ruler">
-      <a>{{ transcription }}</a>
-      <a>{{ reply }}</a>
+      <p>{{ transcription }}</p>
+      <p>{{ reply }}</p>
+      <p>{{ audioUrl }}</p>
       <audio v-if="audioUrl" :src="audioUrl" controls></audio>
     </div>
   </main>
@@ -105,7 +106,7 @@ export default {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP Error! Statur: ${response.status}`)
+          throw new Error(`HTTP Error! Status: ${response.status}`)
         }
 
         const data = await response.json();

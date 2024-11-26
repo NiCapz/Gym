@@ -13,7 +13,7 @@ import java.io.IOException;
 public class WhisperT2SService {
 
     private static final String OPENAI_T2S_URL = "https://api.openai.com/v1/audio/text-to-speech";
-    private static final String API_KEY = "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";
+    private static final String API_KEY = "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";
 
     public byte[] synthesizeSpeech(String text) throws IOException {
         try(CloseableHttpClient client = HttpClients.createDefault()) {

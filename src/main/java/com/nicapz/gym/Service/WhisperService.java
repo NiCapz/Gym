@@ -16,7 +16,7 @@ import java.io.IOException;
 public class WhisperService {
 
     private static final String WHISPER_URL = "https://api.openai.com/v1/audio/transcriptions";
-    private static final String API_KEY = "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";
+    private static final String API_KEY = "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";
 
     public String transcribeAudio(byte[] audioBytes, String fileType) throws IOException {
         String fileName = "testFile";
@@ -30,8 +30,6 @@ public class WhisperService {
             request.setEntity(builder.build());
 
             try (CloseableHttpResponse response = client.execute(request)) {
-                String responseBody = EntityUtils.toString(response.getEntity());
-                System.out.println("Whisper API Response: " + responseBody);
                 return EntityUtils.toString(response.getEntity());
             }
         }
