@@ -5,8 +5,6 @@
       <hr class="ruler">
       <p>{{ transcription }}</p>
       <p>{{ reply }}</p>
-      <p>{{ audioUrl }}</p>
-      <audio v-if="audioUrl" :src="audioUrl" controls></audio>
     </div>
   </main>
 </template>
@@ -113,12 +111,16 @@ export default {
         this.transcription = data.transcription;
         this.reply = data.reply;
 
+        var snd = new Audio("data:audio/mp3;base64," + data.audio);
+        snd.play();
+
         // convert audio from Base64 to Blob URL
-        const audioBlob = new Blob(
+        /*const audioBlob = new Blob(
           [Uint8Array.from(atob(data.audio), c => c.charCodeAt(0))],
           { type: "audio/mpeg" }
         );
-        this.audioUrl = URL.createObjectURL(audioBlob);
+        console.log(audioBlob);
+        this.audioUrl = URL.createObjectURL(audioBlob); */
       }
       catch (error) {
         console.error("Error processing audio:", error);

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
 
@@ -43,7 +44,6 @@ public class ChatController {
     @PostMapping("/process-audio")
     public ResponseEntity<?> processAudio(@RequestParam("file") MultipartFile file) throws IOException {
         try {
-
             String transcription = whisperService.transcribeAudio(file.getBytes(), file.getContentType());
             JsonObject transcriptionJson = JsonParser.parseString(transcription).getAsJsonObject();
             transcription = transcriptionJson.get("text").getAsString();
@@ -55,6 +55,8 @@ public class ChatController {
 
             byte[] audioBytes = whisperT2SService.synthesizeSpeech(chatReply);
             String audio = Base64.getEncoder().encodeToString(audioBytes);
+            System.out.println(audio);
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, "application/json")
                     .body(Map.of(
