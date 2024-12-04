@@ -3,8 +3,16 @@
     <div>
       <button @click="toggleRecording">{{ recordButtonText }}</button><br>
       <hr class="ruler">
-      <p>{{ transcription }}</p>
-      <p>{{ reply }}</p>
+      <li v-for="item in convo">
+        <div>
+          <p>{{ item[0] }}</p>
+          <p>{{ item[1] }}</p>
+        </div>
+      </li>
+      <div v-if="transcription">
+        <p>{{ transcription }}</p>
+        <p>{{ reply }}</p>
+      </div>
     </div>
   </main>
 </template>
@@ -16,6 +24,7 @@
 // this is easier than conversion from Webm
 import { MediaRecorder, register } from 'extendable-media-recorder'
 import { connect } from 'extendable-media-recorder-wav-encoder'
+import { Client } from '@stomp/stompjs'
 </script>
 
 
@@ -32,15 +41,61 @@ export default {
       stream: null,
       sampleRate: null,
       reply: '',
-      audioUrl: '',
-
-      transcribeURL: 'http://localhost:8080/api/chat/process-audio',
+      audio: null,
+      convo: [],
+      client: null,
+      transcribeURL: 'http://localhost:8080/process-audio',
 
       recordButtonText: 'Start Recording',
     }
   },
 
+  created() {
+    this.client = new Client({
+      webSocketFactory: () => new WebSocket("ws://localhost:8080/backend-websocket"),
+      reconnectDelay: 5000,
+      onConnect: () => { this.subscribeToEndpoints(); },
+      debug: (str) => {
+        console.log(str);
+      }
+    })
+    this.client.activate();
+  },
+
+  beforeUnMount() {
+    this.disconnectWebSocket();
+  },
+
   methods: {
+
+    disconnectWebSocket() {
+      if(this.client) {
+        this.client.deactivate();
+      }
+    },
+
+    subscribeToEndpoints() {
+      this.client.subscribe('/topic/transcription', (message) => {
+        this.transcription = message.body;
+        console.log(this.transcription);
+      });
+      
+      this.client.subscribe('/topic/reply', (message) => {
+        this.reply = message.body;
+        console.log(this.reply);
+      })
+
+      this.client.subscribe('/topic/audio', (message) => {
+        this.audio = new Audio("data:audio/mp3;base64," + message.body)
+        this.audio.play();
+        this.convo.push([this.transcription, this.reply, this.audio])
+        this.transcription = '';
+        this.reply = '';
+        this.audio = null;
+      })
+        
+
+    },
 
     toggleRecording() {
       if (!this.isRecording) {
@@ -107,12 +162,14 @@ export default {
           throw new Error(`HTTP Error! Status: ${response.status}`)
         }
 
-        const data = await response.json();
-        this.transcription = data.transcription;
-        this.reply = data.reply;
+        //const data = await response.json();
+        //this.transcription = data.transcription;
+        //this.reply = data.reply;
 
-        var snd = new Audio("data:audio/mp3;base64," + data.audio);
-        snd.play();
+        //this.convo.push([data.transcription, data.reply])
+
+        //var snd = new Audio("data:audio/mp3;base64," + data.audio);
+        //snd.play();
 
         // convert audio from Base64 to Blob URL
         /*const audioBlob = new Blob(
