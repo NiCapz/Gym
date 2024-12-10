@@ -11,10 +11,12 @@ public class UserRequest {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private String content;
+    private String transcription;
 
 
-    UserRequest(String content) {
+    UserRequest(String content, String transcription) {
         this.content = content;
+        this.transcription = transcription;
     }
 
 

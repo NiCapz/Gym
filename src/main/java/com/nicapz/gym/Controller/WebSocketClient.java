@@ -1,39 +1,54 @@
 package com.nicapz.gym.Controller;
 
+import lombok.Getter;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.entity.StringEntity;
 
 import javax.websocket.*;
 
-@ClientEndpoint
-public class WebSocketClient {
 
-    private Session session;
+public class WebSocketClient extends Endpoint{
+
+    @Getter
+    private static WebSocketClient instance;
+
+    public Session session;
+
+    public WebSocketClient() {
+        instance = this;
+    }
+
+    @Override
+    public void onOpen(Session session, EndpointConfig endpointConfig) {
+        this.session = session;
+        System.out.println("connected to server");
+        session.addMessageHandler(String.class, this::onMessage);
+        System.out.println("Session open: " + session.isOpen());
+        sendMessage(openMessage);
+
+        System.out.println("Session ID:" + session.getId());
+    }
 
     private final String openMessage = """
             {
                 "type": "response.create",
                 "response": {
                     "modalities": ["text"],
-                    "instructions": "Please assist the user.",
+                    "instructions": "Please assist the user."
                 }
             }
             """;
 
-    @OnOpen
-    public void onOpen(Session session) {
-        this.session = session;
-        System.out.println("connected to server");
-        sendMessage(openMessage);
-    }
-
-    @OnMessage
     public void onMessage(String message) {
-        System.out.println(message);
+        System.out.println("Message received: " + message);
     }
 
     public void sendMessage(String text) {
         try {
+            if (session == null) {
+                System.err.println("Session is not open yet, cannot send message.");
+                return; // Prevent further execution if session is null
+            }
             String sanitizedText = StringEscapeUtils.escapeJson(text);
             String message = """
                     {

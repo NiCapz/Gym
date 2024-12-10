@@ -10,9 +10,11 @@ public class ChatGPTReply {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private String content;
+    private byte[] audio;
 
-    public ChatGPTReply(String content) {
+    public ChatGPTReply(String content, byte[] audio) {
         this.content = content;
+        this.audio = audio;
     }
 
 
