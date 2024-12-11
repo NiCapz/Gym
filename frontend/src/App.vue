@@ -1,13 +1,13 @@
 <template>
   <main>
     <div>
-      <li>
-        <p v-if="transcription">User: {{ transcription }}</p>
-        <p v-if="reply">AI: {{ reply }}</p>
-      </li>
       <li v-for="interaction in interactions">
         <p>User: {{ interaction[0] }}</p>
         <p>AI: {{ interaction[1] }}</p>
+      </li>
+      <li>
+        <p v-if="transcription">User: {{ transcription }}</p>
+        <p v-if="reply">AI: {{ reply }}</p>
       </li>
       <hr class="ruler">
       <button @click="toggleRecording">{{ recordButtonText }}</button><br>
@@ -46,7 +46,7 @@ export default {
 
       client: null,
       socket: null,
-      sessionId: '11',
+      sessionId: '18',
       connected: false
     }
   },
@@ -77,12 +77,14 @@ export default {
         console.log(this.reply)
       });
 
-      this.client.subscribe(`/topic/replyChunk/${sessionId}`, message => {
+      this.client.subscribe(`/topic/replyChunk/${this.sessionId}`, message => {
+        console.log("receiving replychunk...")
         const result = message.body;
         this.reply += result;
       });
 
       this.client.subscribe(`/topic/audio/${this.sessionId}`, message => {
+        console.log("receiving audio...");
         const result = message.body;
         this.sound = new Audio("data:audio/mp3;base64," + result);
         this.sound.play();

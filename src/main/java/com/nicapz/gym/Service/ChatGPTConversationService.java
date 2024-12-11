@@ -59,7 +59,6 @@ public class ChatGPTConversationService {
             request.addHeader("Authorization", "Bearer " + API_KEY);
             request.addHeader("Content-Type", "application/json");
             String bodyString = makeBody(history, userMessage);
-            System.out.println(bodyString);
             StringEntity body = new StringEntity(bodyString);
             request.setEntity(body);
             System.out.println("... sending request ...");

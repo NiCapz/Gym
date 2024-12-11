@@ -70,6 +70,27 @@ public class StreamGPTResponse {
         return jsonBuilder.toString();
     }
 
+    public static String parseJsonLine(String line) {
+
+        System.out.println("parseJsonLine: " + line);
+        try {
+            JsonObject levelOne = JsonParser.parseString(line).getAsJsonObject();
+            //Access Choices Array
+            JsonArray choices = levelOne.getAsJsonArray("choices");
+            // Access first element of choices Array
+            JsonObject firstChoice = choices.get(0).getAsJsonObject();
+            // Access the delta object
+            JsonObject delta = firstChoice.getAsJsonObject("delta");
+            // get the content field from delta
+            String content = delta.has("content") ? delta.get("content").getAsString() : "";
+            return content;
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage() + "incorrect json or final line");
+        }
+        return "";
+    }
+
     public String getChatGPTReply(String conversationId, String userMessage, List<Interaction> history) throws IOException {
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpPost request = new HttpPost(OPENAI_CHAT_URL);
@@ -79,7 +100,6 @@ public class StreamGPTResponse {
             System.out.println(bodyString);
             StringEntity body = new StringEntity(bodyString);
             request.setEntity(body);
-            System.out.println("... sending request ...");
             try (CloseableHttpResponse response = client.execute(request)) {
 
                 if (response.getStatusLine().getStatusCode() != 200) {
@@ -90,36 +110,20 @@ public class StreamGPTResponse {
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()))) {
                     finalResponse = new StringBuilder();
                     String line;
-                    String lineContent = "";
 
                     while ((line = reader.readLine()) != null) {
                         if (!line.isEmpty()) {
-                            System.out.println("Received Chunk: " + line);
+                            if (line.equals("[DONE]")) {return finalResponse.toString();}
+                            line = line.substring(6);
+                            line = parseJsonLine(line);
+                            System.out.println("Parsed line: " + line);
+                            messagingTemplate.convertAndSend("/topic/replyChunk/" + conversationId, line);
+                            finalResponse.append(line);
                         }
-                        if (!line.isEmpty()) {
-                            line = line.substring(6).trim();
-                        }
-                        JsonObject jsonChunk = JsonParser.parseString(line).getAsJsonObject();
-                        if (jsonChunk.has("choices")) {
-                            JsonArray choices = jsonChunk.getAsJsonArray("choices");
-                            for (JsonElement choice : choices) {
-                                JsonObject choiceObj = choice.getAsJsonObject();
-                                if (choiceObj.has("delta")) {
-                                    JsonObject delta = choiceObj.getAsJsonObject("delta");
-                                    if (delta.has("content")) {
-                                        lineContent = delta.get("content").getAsString();
-                                    }
-                                    messagingTemplate.convertAndSend("/topic/replyChunk/"+ conversationId, lineContent);
-
-                                    // Append the content to the final response
-                                    finalResponse.append(lineContent);
-                                }
-                            }
-                        }
-
                     }
                 }
                 return finalResponse.toString();
+
             }
         }
     }
