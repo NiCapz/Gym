@@ -11,6 +11,7 @@ import com.nicapz.gym.Service.*;
 import org.apache.http.HttpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,8 +34,18 @@ public class ChatController {
     private final WhisperT2SService whisperT2SService = new WhisperT2SService();
     private final ChatGPTConversationService chatGPTConversationService = new ChatGPTConversationService();
 
+    private final StreamGPTResponse streamGPTResponse;
+
+    @Autowired
+    public ChatController(StreamGPTResponse streamGPTResponse) {
+        this.streamGPTResponse = streamGPTResponse;
+    }
+
     @Autowired
     InteractionService interactionService;
+
+    @Autowired
+    public  SimpMessagingTemplate messagingTemplate;
 
     private String parseReply(String reply) {
 
@@ -48,36 +59,58 @@ public class ChatController {
     }
 
     @PostMapping("/process-audio")
-    public ResponseEntity<?> processAudio(@RequestParam("file") MultipartFile file) throws IOException {
-        try {
+    public void processAudio(@RequestParam("file") MultipartFile file, @RequestParam("sessionId") String sessionId) throws IOException {
+
+        String transcription = whisperService.transcribeAudio(file.getBytes(), file.getContentType());
+        JsonObject transcriptionJson = JsonParser.parseString(transcription).getAsJsonObject();
+        transcription = transcriptionJson.get("text").getAsString();
+        System.out.println(transcription);
+        messagingTemplate.convertAndSend("/topic/transcription/" + sessionId, transcription);
+
+        List<Interaction> history = interactionService.getInteractionsByConversationId(sessionId);
+        System.out.println("... done retrieving history ...");
+
+        String chatReply = streamGPTResponse.getChatGPTReply(sessionId, transcription, history);
+        System.out.println(chatReply);
+        chatReply = parseReply(chatReply);
+        System.out.println(chatReply);
+        messagingTemplate.convertAndSend("/topic/chatReply/"+ sessionId, chatReply);
+
+
+        byte[] audioBytes = whisperT2SService.synthesizeSpeech(chatReply);
+        String audio = Base64.getEncoder().encodeToString(audioBytes);
+        messagingTemplate.convertAndSend("/topic/audio/" + sessionId, audio);
+
+        Interaction interaction = new Interaction(sessionId, transcription, chatReply);
+        interactionService.saveInteraction(interaction);
+        System.out.println("... interaction saved ...");
+    }
+
+    @PostMapping("/process-audio2")
+    public void processAudio2(@RequestParam("file") MultipartFile file, @RequestParam("sessionId") String sessionId) throws IOException {
+
             String transcription = whisperService.transcribeAudio(file.getBytes(), file.getContentType());
             JsonObject transcriptionJson = JsonParser.parseString(transcription).getAsJsonObject();
             transcription = transcriptionJson.get("text").getAsString();
             System.out.println(transcription);
+            messagingTemplate.convertAndSend("/topic/transcription/" + sessionId, transcription);
 
-            List<Interaction> history = interactionService.getInteractions();
+            List<Interaction> history = interactionService.getInteractionsByConversationId(sessionId);
             System.out.println("... done retrieving history ...");
 
-            String chatReply = chatGPTConversationService.getChatGPTReply("1", transcription, history);
+            String chatReply = chatGPTConversationService.getChatGPTReply(sessionId, transcription, history);
+            System.out.println(chatReply);
             chatReply = parseReply(chatReply);
             System.out.println(chatReply);
+            messagingTemplate.convertAndSend("/topic/chatReply/"+ sessionId, chatReply);
+
 
             byte[] audioBytes = whisperT2SService.synthesizeSpeech(chatReply);
             String audio = Base64.getEncoder().encodeToString(audioBytes);
+            messagingTemplate.convertAndSend("/topic/audio/" + sessionId, audio);
 
-            Interaction interaction = new Interaction("1", transcription, chatReply);
+            Interaction interaction = new Interaction(sessionId, transcription, chatReply);
             interactionService.saveInteraction(interaction);
             System.out.println("... interaction saved ...");
-
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE, "application/json")
-                    .body(Map.of(
-                            "transcription", transcription,
-                            "reply", chatReply,
-                            "audio", audio
-                    ));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error: " + e.getMessage());
-        }
     }
 }

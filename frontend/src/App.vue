@@ -1,6 +1,10 @@
 <template>
   <main>
     <div>
+      <li>
+        <p v-if="transcription">User: {{ transcription }}</p>
+        <p v-if="reply">AI: {{ reply }}</p>
+      </li>
       <li v-for="interaction in interactions">
         <p>User: {{ interaction[0] }}</p>
         <p>AI: {{ interaction[1] }}</p>
@@ -18,9 +22,10 @@
 // this is easier than conversion from Webm
 import { MediaRecorder, register } from 'extendable-media-recorder'
 import { connect } from 'extendable-media-recorder-wav-encoder'
+import { Client } from '@stomp/stompjs'
 </script>
 
-
+s
 
 <script>
 export default {
@@ -31,16 +36,64 @@ export default {
       audioChunks: [],
       transcription: '',
       stream: null,
-      reply: '',
+      reply: null,
+      sound: null,
       audioUrl: '',
       transcribeURL: 'http://localhost:8080/api/chat/process-audio',
       recordButtonText: 'Start Recording',
 
-      interactions: []
+      interactions: [],
+
+      client: null,
+      socket: null,
+      sessionId: '11',
+      connected: false
     }
   },
 
+  created() {
+    this.client = new Client({
+      webSocketFactory: () => new WebSocket('ws:localhost:8080/transcription-websocket'),
+      reconnectDelay: 5000,
+      onConnect: () => {
+        this.subscribeToTranscriptions();
+      }
+    });
+    this.client.activate();
+  },
+
   methods: {
+
+    subscribeToTranscriptions() {
+      this.client.subscribe(`/topic/transcription/${this.sessionId}`, message => {
+        const result = message.body;
+        this.transcription = result;
+        console.log(this.transcription)
+      });
+
+      this.client.subscribe(`/topic/chatReply/${this.sessionId}`, message => {
+        const result = message.body;
+        this.reply = result;
+        console.log(this.reply)
+      });
+
+      this.client.subscribe(`/topic/replyChunk/${sessionId}`, message => {
+        const result = message.body;
+        this.reply += result;
+      });
+
+      this.client.subscribe(`/topic/audio/${this.sessionId}`, message => {
+        const result = message.body;
+        this.sound = new Audio("data:audio/mp3;base64," + result);
+        this.sound.play();
+        if (this.transcription && this.reply && this.sound) {
+          this.interactions.push([this.transcription, this.reply, this.sound]);
+          this.transcription = null;
+          this.reply = null;
+          this.sound = null;
+      }
+    });
+    },
 
     toggleRecording() {
       if (!this.isRecording) {
@@ -97,6 +150,7 @@ export default {
       try {
         const formData = new FormData();
         formData.append('file', audio);
+        formData.append('sessionId', this.sessionId)
 
         const response = await fetch(this.transcribeURL, {
           method: "POST",
@@ -107,7 +161,7 @@ export default {
           throw new Error(`HTTP Error! Status: ${response.status}`)
         }
 
-        const data = await response.json();
+        /*const data = await response.json();
         this.transcription = data.transcription;
         this.reply = data.reply;
 
@@ -115,6 +169,7 @@ export default {
         snd.play();
 
         this.interactions.push([this.transcription, this.reply, snd])
+        */
 
       }
       catch (error) {
