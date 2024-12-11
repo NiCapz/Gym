@@ -1,12 +1,12 @@
 <template>
   <main>
     <div>
-      <button @click="toggleRecording">{{ recordButtonText }}</button><br>
-      <hr class="ruler">
       <li v-for="interaction in interactions">
         <p>User: {{ interaction[0] }}</p>
         <p>AI: {{ interaction[1] }}</p>
       </li>
+      <hr class="ruler">
+      <button @click="toggleRecording">{{ recordButtonText }}</button><br>
     </div>
   </main>
 </template>

@@ -47,9 +47,8 @@ public class ChatController {
         return content;
     }
 
-
     @PostMapping("/process-audio")
-    public ResponseEntity<?> processAudio2(@RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<?> processAudio(@RequestParam("file") MultipartFile file) throws IOException {
         try {
             String transcription = whisperService.transcribeAudio(file.getBytes(), file.getContentType());
             JsonObject transcriptionJson = JsonParser.parseString(transcription).getAsJsonObject();
@@ -81,33 +80,4 @@ public class ChatController {
             return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
     }
-
-    @PostMapping("/process-audio2")
-    public ResponseEntity<?> processAudio(@RequestParam("file") MultipartFile file) throws IOException {
-        try {
-            String transcription = whisperService.transcribeAudio(file.getBytes(), file.getContentType());
-            JsonObject transcriptionJson = JsonParser.parseString(transcription).getAsJsonObject();
-            transcription = transcriptionJson.get("text").getAsString();
-            System.out.println(transcription);
-
-            String chatReply = chatGPTService.getChatGPTReply(transcription);
-            System.out.println("Raw reply: " + chatReply);
-            chatReply = parseReply(chatReply);
-            System.out.println(chatReply);
-
-            byte[] audioBytes = whisperT2SService.synthesizeSpeech(chatReply);
-            String audio = Base64.getEncoder().encodeToString(audioBytes);
-
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE, "application/json")
-                    .body(Map.of(
-                            "transcription", transcription,
-                            "reply", chatReply,
-                            "audio", audio
-                    ));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error: " + e.getMessage());
-        }
-    }
-
 }

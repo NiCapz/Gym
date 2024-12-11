@@ -16,10 +16,13 @@ public class Interaction {
 
     @Getter
     private String conversationId;
-    @Getter
-    private String userRequest;
+
     @Getter
     @Column(length = 1000)
+    private String userRequest;
+
+    @Getter
+    @Column(length = 10000)
     private String aiReply;
 
 
