@@ -23,12 +23,10 @@ public class WhisperService {
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpPost request = new HttpPost(WHISPER_URL);
             request.addHeader("Authorization", "Bearer " + API_KEY);
-
             var builder = MultipartEntityBuilder.create()
                     .addBinaryBody("file", audioBytes, ContentType.create("audio/wav"), "audio/wav")
                     .addTextBody("model", "whisper-1");
             request.setEntity(builder.build());
-
             try (CloseableHttpResponse response = client.execute(request)) {
                 return EntityUtils.toString(response.getEntity());
             }

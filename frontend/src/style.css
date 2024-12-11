@@ -13,6 +13,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+p {
+  font-family: 'Courier New', Courier, monospace;
+}
 
 span, a {
   margin-left: .2em;
@@ -33,6 +36,10 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+}
+
+li {
+  place-items: left;
 }
 
 button, liveTranscript {

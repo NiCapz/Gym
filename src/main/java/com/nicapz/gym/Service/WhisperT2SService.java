@@ -24,10 +24,8 @@ public class WhisperT2SService {
             HttpPost request = new HttpPost("https://api.openai.com/v1/audio/speech");
             request.addHeader("Authorization", "Bearer " + API_KEY);
             request.addHeader("Content-Type", "application/json");
-
             StringEntity body = makeJsonBody(text);
             request.setEntity(body);
-
             try (CloseableHttpResponse response = client.execute(request)) {
                 return response.getEntity().getContent().readAllBytes();
             }
@@ -36,14 +34,11 @@ public class WhisperT2SService {
 
     private static StringEntity makeJsonBody(String text) throws UnsupportedEncodingException {
         Map<String, Object> jsonBody = new HashMap<>();
-
         jsonBody.put("model", "tts-1");
         jsonBody.put("input", text);
         jsonBody.put("voice", "onyx");
-
         Gson gson = new Gson();
         String json = gson.toJson(jsonBody);
-
         return new StringEntity(json);
     }
 }

@@ -3,8 +3,10 @@
     <div>
       <button @click="toggleRecording">{{ recordButtonText }}</button><br>
       <hr class="ruler">
-      <p>{{ transcription }}</p>
-      <p>{{ reply }}</p>
+      <li v-for="interaction in interactions">
+        <p>User: {{ interaction[0] }}</p>
+        <p>AI: {{ interaction[1] }}</p>
+      </li>
     </div>
   </main>
 </template>
@@ -28,15 +30,13 @@ export default {
       isRecording: false,
       audioChunks: [],
       transcription: '',
-      transcriptionList: [],
       stream: null,
-      sampleRate: null,
       reply: '',
       audioUrl: '',
-
       transcribeURL: 'http://localhost:8080/api/chat/process-audio',
-
       recordButtonText: 'Start Recording',
+
+      interactions: []
     }
   },
 
@@ -114,13 +114,8 @@ export default {
         var snd = new Audio("data:audio/mp3;base64," + data.audio);
         snd.play();
 
-        // convert audio from Base64 to Blob URL
-        /*const audioBlob = new Blob(
-          [Uint8Array.from(atob(data.audio), c => c.charCodeAt(0))],
-          { type: "audio/mpeg" }
-        );
-        console.log(audioBlob);
-        this.audioUrl = URL.createObjectURL(audioBlob); */
+        this.interactions.push([this.transcription, this.reply, snd])
+
       }
       catch (error) {
         console.error("Error processing audio:", error);
