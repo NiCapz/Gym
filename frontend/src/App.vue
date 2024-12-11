@@ -46,7 +46,7 @@ export default {
 
       client: null,
       socket: null,
-      sessionId: '18',
+      sessionId: '23',
       connected: false
     }
   },
