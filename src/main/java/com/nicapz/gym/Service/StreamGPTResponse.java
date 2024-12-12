@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Service
@@ -34,6 +35,14 @@ public class StreamGPTResponse {
     @Autowired
     public StreamGPTResponse(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
+    }
+
+    private static String escapeJson(String input) {
+        return input
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r");
     }
 
     public static String makeBody(List<Interaction> interactions, String newMessage) {
@@ -53,13 +62,13 @@ public class StreamGPTResponse {
         );
         if (!interactions.isEmpty()) {
             for (Interaction interaction : interactions) {
-                jsonBuilder.append(String.format(messagesTemplate, "user", interaction.getUserRequest()));
+                jsonBuilder.append(String.format(messagesTemplate, "user", escapeJson(interaction.getUserRequest())));
                 jsonBuilder.append(", ");
-                jsonBuilder.append(String.format(messagesTemplate, "assistant", interaction.getAiReply()));
+                jsonBuilder.append(String.format(messagesTemplate, "assistant", escapeJson(interaction.getAiReply())));
                 jsonBuilder.append(", ");
             }
         }
-        jsonBuilder.append(String.format(messagesTemplate, "user", newMessage));
+        jsonBuilder.append(String.format(messagesTemplate, "user", escapeJson(newMessage)));
 
         jsonBuilder.append("""
                 ],
@@ -102,8 +111,12 @@ public class StreamGPTResponse {
             request.setEntity(body);
             try (CloseableHttpResponse response = client.execute(request)) {
 
+                if (response.getStatusLine().getStatusCode() == 400) {
+                    String errorBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+                    System.out.println("Error Response: " + errorBody);
+                }
                 if (response.getStatusLine().getStatusCode() != 200) {
-                    throw new IOException("Failed Request: " + response.getStatusLine());
+                    throw new IOException("Failed Request: " + response.getStatusLine() + response + request);
                 }
 
                 StringBuilder finalResponse;

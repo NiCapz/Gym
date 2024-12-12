@@ -46,7 +46,7 @@ export default {
 
       client: null,
       socket: null,
-      sessionId: '23',
+      sessionId: '1',
       connected: false
     }
   },
@@ -162,16 +162,6 @@ export default {
         if (!response.ok) {
           throw new Error(`HTTP Error! Status: ${response.status}`)
         }
-
-        /*const data = await response.json();
-        this.transcription = data.transcription;
-        this.reply = data.reply;
-
-        var snd = new Audio("data:audio/mp3;base64," + data.audio);
-        snd.play();
-
-        this.interactions.push([this.transcription, this.reply, snd])
-        */
 
       }
       catch (error) {

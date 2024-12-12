@@ -47,7 +47,6 @@ public class ChatController {
 
         String chatReply = streamGPTResponse.getChatGPTReply(sessionId, transcription, history);
         System.out.println(chatReply);
-        //chatReply = parseReply(chatReply);
         messagingTemplate.convertAndSend("/topic/chatReply/" + sessionId, chatReply);
 
 

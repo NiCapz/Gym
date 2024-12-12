@@ -38,6 +38,7 @@ public class WhisperT2SService {
         jsonBody.put("model", "tts-1");
         jsonBody.put("input", text);
         jsonBody.put("voice", "onyx");
+        jsonBody.put("speed", 1.5);
         Gson gson = new Gson();
         String json = gson.toJson(jsonBody);
         return new StringEntity(json);
