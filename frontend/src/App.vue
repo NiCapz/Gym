@@ -46,12 +46,14 @@ export default {
 
       client: null,
       socket: null,
-      sessionId: '1',
+      sessionId: '',
       connected: false
     }
   },
 
   created() {
+    this.sessionId = Math.floor(Math.random() * 100000);
+    console.log(this.sessionId);
     this.client = new Client({
       webSocketFactory: () => new WebSocket('ws:localhost:8080/transcription-websocket'),
       reconnectDelay: 5000,

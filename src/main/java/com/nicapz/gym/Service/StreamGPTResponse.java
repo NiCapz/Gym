@@ -57,7 +57,7 @@ public class StreamGPTResponse {
                         {
                         "model": "gpt-4",
                         "messages": [
-                        {"role": "system", "content": "You are a helpful assistant. Please use a maximum of 900 characters for your answers."},
+                        {"role": "system", "content": "You are a helpful assistant."},
                         """
         );
         if (!interactions.isEmpty()) {
@@ -81,7 +81,6 @@ public class StreamGPTResponse {
 
     public static String parseJsonLine(String line) {
 
-        System.out.println("parseJsonLine: " + line);
         try {
             JsonObject levelOne = JsonParser.parseString(line).getAsJsonObject();
             //Access Choices Array
@@ -106,7 +105,6 @@ public class StreamGPTResponse {
             request.addHeader("Authorization", "Bearer " + API_KEY);
             request.addHeader("Content-Type", "application/json");
             String bodyString = makeBody(history, userMessage);
-            System.out.println(bodyString);
             StringEntity body = new StringEntity(bodyString);
             request.setEntity(body);
             try (CloseableHttpResponse response = client.execute(request)) {
