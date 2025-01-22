@@ -26,8 +26,7 @@ import java.util.List;
 public class StreamGPTResponse {
 
     private static final String OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions";
-    private static final String API_KEY = "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";
-    //private static final String API_KEY = System.getenv("API_KEY");
+    private static final String API_KEY = System.getenv("OPENAI_KEY");
 
     @Autowired
     private final SimpMessagingTemplate messagingTemplate;
@@ -57,7 +56,7 @@ public class StreamGPTResponse {
                         {
                         "model": "gpt-4",
                         "messages": [
-                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "system", "content": "You are a skilled and professional workplace coach, assisting employees with difficult situations or mental health issues."},
                         """
         );
         if (!interactions.isEmpty()) {
@@ -116,6 +115,8 @@ public class StreamGPTResponse {
                 if (response.getStatusLine().getStatusCode() != 200) {
                     throw new IOException("Failed Request: " + response.getStatusLine() + response + request);
                 }
+
+                System.out.println("Response: " + response);
 
                 StringBuilder finalResponse;
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()))) {

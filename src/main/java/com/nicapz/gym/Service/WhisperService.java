@@ -16,8 +16,7 @@ import java.io.IOException;
 public class WhisperService {
 
     private static final String WHISPER_URL = "https://api.openai.com/v1/audio/transcriptions";
-    private static final String API_KEY = "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";
-    //private static final String API_KEY = System.getenv("API_KEY");
+    private static final String API_KEY = System.getenv("OPENAI_KEY");
 
     public String transcribeAudio(byte[] audioBytes, String fileType) throws IOException {
         String fileName = "testFile";

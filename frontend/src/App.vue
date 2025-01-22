@@ -10,9 +10,18 @@
         <p v-if="reply">AI: {{ reply }}</p>
       </li>
       <hr class="ruler">
-      <button @click="toggleRecording">{{ recordButtonText }}</button><br>
-    </div>
-  </main>
+      <textarea
+      v-model="textInput"
+      rows="5" 
+      cols="50"
+      placeholder="">
+    </textarea>
+  </div>
+  <div class="buttons">
+    <button @click="toggleRecording">{{ recordButtonText }}</button>
+    <button @click="processText">Send written query</button>
+  </div>
+</main>
 </template>
 
 
@@ -24,8 +33,6 @@ import { MediaRecorder, register } from 'extendable-media-recorder'
 import { connect } from 'extendable-media-recorder-wav-encoder'
 import { Client } from '@stomp/stompjs'
 </script>
-
-s
 
 <script>
 export default {
@@ -40,7 +47,9 @@ export default {
       sound: null,
       audioUrl: '',
       transcribeURL: 'http://localhost:8080/api/chat/process-audio',
+      transcribeTextURL: 'http://localhost:8080/api/chat/process-text',
       recordButtonText: 'Start Recording',
+      textInput: '',
 
       interactions: [],
 
@@ -169,6 +178,31 @@ export default {
       catch (error) {
         console.error("Error processing audio:", error);
       }
+    },
+    
+    async processText() {
+      const text = this.textInput
+      this.textInput = '';  
+      if (text != '') {
+          try {
+            const formData = new FormData();
+            formData.append('text', text);
+            formData.append('sessionId', this.sessionId)
+  
+            const response = await fetch(this.transcribeTextURL, {
+              method: 'POST',
+              body: formData
+            });
+  
+            if (!response.ok) {
+              throw new Error(`Http Error! Status: ${response.status}`)
+            }
+          }
+          catch (error) {
+            console.error("Error processing text:", error);
+          }
+          this.textInput = '';
+        }
     },
   }
 }

@@ -34,7 +34,6 @@ public class ChatController {
 
     @PostMapping("/process-audio")
     public void processAudio(@RequestParam("file") MultipartFile file, @RequestParam("sessionId") String sessionId) throws IOException {
-
         System.out.println("... received chatRequest ...");
         String transcription = whisperService.transcribeAudio(file.getBytes(), file.getContentType());
         JsonObject transcriptionJson = JsonParser.parseString(transcription).getAsJsonObject();
@@ -56,6 +55,29 @@ public class ChatController {
         messagingTemplate.convertAndSend("/topic/audio/" + sessionId, audio);
 
         Interaction interaction = new Interaction(sessionId, transcription, chatReply);
+        interactionService.saveInteraction(interaction);
+        System.out.println("... interaction saved ...");
+    }
+
+    @PostMapping("/process-text")
+    public void processText(@RequestParam("text") String text, @RequestParam("sessionId") String sessionId) throws IOException {
+        System.out.println("... received chatRequest ...");
+        System.out.println(text);
+        messagingTemplate.convertAndSend("/topic/transcription/" + sessionId, text);
+
+        List<Interaction> history = interactionService.getInteractionsByConversationId(sessionId);
+        System.out.println("... done retrieving history ...");
+
+        String chatReply = streamGPTResponse.getChatGPTReply(sessionId, text, history);
+        System.out.println(chatReply);
+        messagingTemplate.convertAndSend("/topic/chatReply/" + sessionId, chatReply);
+
+        byte[] audioBytes = whisperT2SService.synthesizeSpeech(chatReply);
+        String audio = Base64.getEncoder().encodeToString(audioBytes);
+        System.out.println("... sending audio ...");
+        messagingTemplate.convertAndSend("/topic/audio/" + sessionId, audio);
+
+        Interaction interaction = new Interaction(sessionId, text, chatReply);
         interactionService.saveInteraction(interaction);
         System.out.println("... interaction saved ...");
     }
