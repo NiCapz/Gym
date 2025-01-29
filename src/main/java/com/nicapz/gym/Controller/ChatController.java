@@ -47,7 +47,7 @@ public class ChatController {
     @Autowired
     public SimpMessagingTemplate messagingTemplate;
 
-    @PostMapping("/process-audio")
+    /*@PostMapping("/process-audio")
     public void processAudio(@RequestParam("file") MultipartFile file, @RequestParam("sessionId") String sessionId) throws IOException {
         System.out.println("... received chatRequest ...");
         String transcription = whisperService.transcribeAudio(file.getBytes(), file.getContentType());
@@ -72,7 +72,7 @@ public class ChatController {
         Interaction interaction = new Interaction(sessionId, transcription, chatReply);
         interactionService.saveInteraction(interaction);
         System.out.println("... interaction saved ...");
-    }
+    }*/
 
     @PostMapping("/process-text")
     public void processText(@RequestParam("text") String text, @RequestParam("sessionId") String sessionId) throws IOException {
@@ -81,24 +81,24 @@ public class ChatController {
         messagingTemplate.convertAndSend("/topic/transcription/" + sessionId, text);
 
         float[] embedding = this.embeddingModel.embed(text);
-        //List<Interaction> history = interactionService.getInteractionsByConversationId(sessionId);
+        List<Interaction> history = interactionService.getInteractionsByConversationId(sessionId);
 
 
-        List<Interaction> history = jdbcClient.sql("SELECT id, conversation_id, user_request, ai_reply " +
+        List<Interaction> ragResults = jdbcClient.sql("SELECT id, conversation_id, user_request, ai_reply " +
                         "FROM interactions ORDER BY vector <-> :queryEmbedding::vector LIMIT 3")
                 .param("queryEmbedding", embedding)
                 .query(Interaction.class)
                 .list();
-        System.out.println("Retrieved interactions: " + history.size());
+        System.out.println("Retrieved interactions: " + ragResults.size());
         System.out.println("Interactions: ");
-        for (Interaction interaction : history) {
+        for (Interaction interaction : ragResults) {
             System.out.println(interaction.getUserRequest());
         }
 
 
 
         System.out.println("... done retrieving history ...");
-        String chatReply = streamGPTResponse.getChatGPTReply(sessionId, text, history);
+        String chatReply = streamGPTResponse.getChatGPTReply(sessionId, text, history, ragResults);
         /*String chatReply = this.chatClient.prompt()
                 .user(text)
                 .call()

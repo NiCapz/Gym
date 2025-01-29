@@ -1,10 +1,8 @@
 package com.nicapz.gym.Service;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.nicapz.gym.Controller.ChatController;
 import com.nicapz.gym.Model.Interaction;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -44,7 +42,7 @@ public class StreamGPTResponse {
                 .replace("\r", "\\r");
     }
 
-    public static String makeBody(List<Interaction> interactions, String newMessage) {
+    public static String makeBody(List<Interaction> interactions, String newMessage, List<Interaction> ragResults) {
 
         StringBuilder jsonBuilder = new StringBuilder();
         String messagesTemplate =
@@ -56,16 +54,24 @@ public class StreamGPTResponse {
                         {
                         "model": "gpt-4",
                         "messages": [
-                        {"role": "system", "content": "You are a skilled and professional workplace coach, assisting employees with difficult situations or mental health issues."},
+                        {"role": "system", "content": "You are a skilled and professional workplace coach, assisting employees with difficult situations or mental health issues. You remember information about a user from previous interactions wich are supplied to you."},
                         """
         );
-        if (!interactions.isEmpty()) {
-            for (Interaction interaction : interactions) {
-                jsonBuilder.append(String.format(messagesTemplate, "user", escapeJson(interaction.getUserRequest())));
+        if (!ragResults.isEmpty()) {
+            for (Interaction ragResult : ragResults) {
+                jsonBuilder.append(String.format(messagesTemplate, "user", escapeJson(ragResult.getUserRequest())));
                 jsonBuilder.append(", ");
-                jsonBuilder.append(String.format(messagesTemplate, "assistant", escapeJson(interaction.getAiReply())));
+                jsonBuilder.append(String.format(messagesTemplate, "assistant", escapeJson(ragResult.getAiReply())));
                 jsonBuilder.append(", ");
             }
+        }
+
+        for (Interaction interaction : interactions) {
+            jsonBuilder.append(String.format(messagesTemplate, "user", escapeJson(interaction.getUserRequest())));
+            jsonBuilder.append(", ");
+            jsonBuilder.append(String.format(messagesTemplate, "assistant", escapeJson(interaction.getAiReply())));
+            jsonBuilder.append(", ");
+
         }
         jsonBuilder.append(String.format(messagesTemplate, "user", escapeJson(newMessage)));
 
@@ -75,6 +81,7 @@ public class StreamGPTResponse {
                 }
                 """);
 
+        System.out.println(jsonBuilder);
         return jsonBuilder.toString();
     }
 
@@ -91,19 +98,18 @@ public class StreamGPTResponse {
             // get the content field from delta
             String content = delta.has("content") ? delta.get("content").getAsString() : "";
             return content;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println(e.getMessage() + "incorrect json or final line");
         }
         return "";
     }
 
-    public String getChatGPTReply(String conversationId, String userMessage, List<Interaction> history) throws IOException {
+    public String getChatGPTReply(String conversationId, String userMessage, List<Interaction> history, List<Interaction> ragResults) throws IOException {
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpPost request = new HttpPost(OPENAI_CHAT_URL);
             request.addHeader("Authorization", "Bearer " + API_KEY);
             request.addHeader("Content-Type", "application/json");
-            String bodyString = makeBody(history, userMessage);
+            String bodyString = makeBody(history, userMessage, ragResults);
             StringEntity body = new StringEntity(bodyString);
             request.setEntity(body);
             try (CloseableHttpResponse response = client.execute(request)) {
@@ -125,7 +131,9 @@ public class StreamGPTResponse {
 
                     while ((line = reader.readLine()) != null) {
                         if (!line.isEmpty()) {
-                            if (line.equals("[DONE]")) {return finalResponse.toString();}
+                            if (line.equals("[DONE]")) {
+                                return finalResponse.toString();
+                            }
                             line = line.substring(6);
                             line = parseJsonLine(line);
                             messagingTemplate.convertAndSend("/topic/replyChunk/" + conversationId, line);
