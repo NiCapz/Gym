@@ -128,17 +128,13 @@ public class StreamGPTResponse {
                             if (line.equals("[DONE]")) {return finalResponse.toString();}
                             line = line.substring(6);
                             line = parseJsonLine(line);
-                            System.out.println("Parsed line: " + line);
                             messagingTemplate.convertAndSend("/topic/replyChunk/" + conversationId, line);
                             finalResponse.append(line);
                         }
                     }
                 }
                 return finalResponse.toString();
-
             }
         }
     }
-
-
 }

@@ -19,7 +19,6 @@ public class WhisperService {
     private static final String API_KEY = System.getenv("OPENAI_KEY");
 
     public String transcribeAudio(byte[] audioBytes, String fileType) throws IOException {
-        String fileName = "testFile";
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpPost request = new HttpPost(WHISPER_URL);
             request.addHeader("Authorization", "Bearer " + API_KEY);
@@ -32,8 +31,4 @@ public class WhisperService {
             }
         }
     }
-
-
-
-
 }

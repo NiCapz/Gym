@@ -1,9 +1,10 @@
 package com.nicapz.gym.Model;
-
+import java.util.stream.Collectors;
 import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Date;
 
 @Entity
@@ -24,6 +25,7 @@ public class Interaction {
     @Getter
     @Column(length = 10000)
     private String aiReply;
+
 
 
     public Interaction() {}
