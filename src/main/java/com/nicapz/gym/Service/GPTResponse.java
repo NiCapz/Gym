@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Service
-public class StreamGPTResponse {
+public class GPTResponse {
 
     private static final String OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions";
     private static final String API_KEY = System.getenv("OPENAI_KEY");
@@ -30,7 +30,7 @@ public class StreamGPTResponse {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public StreamGPTResponse(SimpMessagingTemplate messagingTemplate) {
+    public GPTResponse(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
     }
 

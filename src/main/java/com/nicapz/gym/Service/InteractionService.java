@@ -13,6 +13,7 @@ public interface InteractionService {
     public List<Interaction> getInteractions();
     public List<Interaction> getInteractionsByConversationId(String id);
     public void deleteInteraction(long id);
+    public void saveInteractionWithVector(String userRequest, String aiReply, String conversationId, float[] embedding);
 
 
 }

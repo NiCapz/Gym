@@ -26,7 +26,9 @@ public class Interaction {
     @Column(length = 10000)
     private String aiReply;
 
-
+    public String toString() {
+        return "User: " + userRequest + " Assistant: " + aiReply;
+    }
 
     public Interaction() {}
 
