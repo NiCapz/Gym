@@ -42,7 +42,7 @@ public class ChatController {
     public ChatController(StreamGPTResponse streamGPTResponse, SpringAIChatClient springAIChatClient) {
         this.streamGPTResponse = streamGPTResponse;
     }
-
+/*
     @PostMapping("/process-audio")
     public void processAudio(@RequestParam("file") MultipartFile file, @RequestParam("sessionId") String sessionId) throws IOException {
         System.out.println("... received chatRequest ...");
@@ -69,20 +69,21 @@ public class ChatController {
         interactionService.saveInteractionWithVector(text, chatReply, sessionId, embedding);
 
         System.out.println("... interaction saved ...");
-    }
+    }*/
 
     @PostMapping("/process-text")
-    public void processText(@RequestParam("text") String text, @RequestParam("sessionId") String sessionId) throws IOException {
+    public void processText(@RequestParam("text") String text, @RequestParam("sessionId") String sessionId, @RequestParam("userId") String userId) throws IOException {
+        System.out.println("user ID: " + userId);
         messagingTemplate.convertAndSend("/topic/transcription/" + sessionId, text);
-        String springAiResponse = springAIChatClient.generateResponse(text, sessionId);
+        String springAiResponse = springAIChatClient.generateResponse(text, sessionId, userId);
         float[] embedding = rag.embedPrompt(text);
-        System.out.println(springAiResponse);
+        System.out.println("AI response: " + springAiResponse);
         messagingTemplate.convertAndSend("/topic/chatReply/" + sessionId, springAiResponse);
 
         byte[] audioBytes = whisperT2SService.synthesizeSpeech(springAiResponse);
         String audio = Base64.getEncoder().encodeToString(audioBytes);
         messagingTemplate.convertAndSend("/topic/audio/" + sessionId, audio);
-        interactionService.saveInteractionWithVector(text, springAiResponse, sessionId, embedding);
+        interactionService.saveInteractionWithVector(userId, text, springAiResponse, sessionId, embedding);
         System.out.println("... interaction saved ...");
     }
 }

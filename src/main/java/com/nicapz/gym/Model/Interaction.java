@@ -19,6 +19,9 @@ public class Interaction {
     private String conversationId;
 
     @Getter
+    private String userId;
+
+    @Getter
     @Column(length = 1000)
     private String userRequest;
 
@@ -32,7 +35,8 @@ public class Interaction {
 
     public Interaction() {}
 
-    public Interaction(String ConversationId, String userRequest, String aiReply) {
+    public Interaction(String userId, String ConversationId, String userRequest, String aiReply) {
+        this.userId = userId;
         this.conversationId = ConversationId;
         this.userRequest = userRequest;
         this.aiReply = aiReply;

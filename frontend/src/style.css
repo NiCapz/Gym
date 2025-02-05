@@ -60,7 +60,7 @@ textarea:focus, input:focus{
   border-color: #00ccff;
 }
 
-button {
+button, input {
   margin: 10px;
   border-radius: 8px;
   border: 2px solid transparent;

@@ -25,32 +25,37 @@ public class RAG {
         this.chatCLient = chatCLientBuilder.build();
     }
 
-    public List<Interaction> hybridSearch (String prompt, int kMaxSemantic, float maxCosineDistance, int kMaxKeyword) {
+    public List<Interaction> hybridSearch (String userId, String prompt, int kMaxSemantic, float maxCosineDistance, int kMaxKeyword) {
         float[] embedding = embedPrompt(prompt);
         String keywords = extractKeywords(prompt);
-        List<Interaction> results = new ArrayList<>(semanticSearch(embedding, kMaxSemantic, maxCosineDistance));
-        List<Interaction> keywordResults = keyWordSearch(keywords, kMaxKeyword);
+        List<Interaction> results = new ArrayList<>(semanticSearch(userId, embedding, kMaxSemantic, maxCosineDistance));
+        List<Interaction> keywordResults = keyWordSearch(userId, keywords, kMaxKeyword);
         keywordResults.removeIf(results::contains);
         results.addAll(keywordResults);
         return results;
     }
 
-    public List<Interaction> semanticSearch(float[] embedding, int kMax, float maxCosineDistance) {
+    public List<Interaction> semanticSearch(String userId, float[] embedding, int kMax, float maxCosineDistance) {
         return jdbcClient.sql("SELECT id, conversation_id, user_request, ai_reply " +
                         "FROM interactions WHERE (vector <=> :queryEmbedding::vector < :maxCosineDistance)" +
+                        "AND user_id = :userId" +
                         " ORDER BY vector <=> :queryEmbedding::vector LIMIT :limit")
                 .param("queryEmbedding", embedding)
                 .param("limit", kMax)
                 .param("maxCosineDistance", maxCosineDistance)
+                .param("userId", userId)
                 .query(Interaction.class)
                 .list();
     }
 
-    public List<Interaction> keyWordSearch(String keywords, int kMax) {
+    public List<Interaction> keyWordSearch(String userId, String keywords, int kMax) {
         return jdbcClient.sql("SELECT id, conversation_id, user_request, ai_reply " +
-                        "FROM interactions WHERE tsvector @@ to_tsquery('english', :keywords) LIMIT :limit")
+                        "FROM interactions WHERE tsvector @@ to_tsquery('english', :keywords)" +
+                        "AND user_id = :userId" +
+                        " LIMIT :limit")
                 .param("keywords", keywords)
                 .param("limit", kMax)
+                .param("userId", userId)
                 .query(Interaction.class)
                 .list();
     }

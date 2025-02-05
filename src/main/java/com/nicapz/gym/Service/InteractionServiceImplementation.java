@@ -41,8 +41,9 @@ public class InteractionServiceImplementation implements InteractionService {
     }
 
     @Override
-    public void saveInteractionWithVector(String userRequest, String aiReply, String conversationId, float[] embedding) {
-        jdbcClient.sql("INSERT INTO interactions  (user_request, ai_reply, conversation_id, vector) VALUES (:userRequest, :aiReply, :conversationId, :vector::vector)")
+    public void saveInteractionWithVector(String userId, String userRequest, String aiReply, String conversationId, float[] embedding) {
+        jdbcClient.sql("INSERT INTO interactions  (user_id, user_request, ai_reply, conversation_id, vector) VALUES (:userId, :userRequest, :aiReply, :conversationId, :vector::vector)")
+                .param("userId", userId)
                 .param("userRequest", userRequest)
                 .param("aiReply", aiReply)
                 .param("conversationId", conversationId)

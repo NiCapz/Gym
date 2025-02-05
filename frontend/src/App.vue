@@ -21,6 +21,7 @@
     <button @click="toggleRecording">{{ recordButtonText }}</button>
     <button @click="processText">Send written query</button>
   </div>
+  <span>User ID</span><input v-model="userId" type="number" min="1">
 </main>
 </template>
 
@@ -56,6 +57,7 @@ export default {
       client: null,
       socket: null,
       sessionId: '',
+      userId: 1,
       connected: false
     }
   },
@@ -188,6 +190,7 @@ export default {
             const formData = new FormData();
             formData.append('text', text);
             formData.append('sessionId', this.sessionId)
+            formData.append('userId', this.userId)
   
             const response = await fetch(this.transcribeTextURL, {
               method: 'POST',

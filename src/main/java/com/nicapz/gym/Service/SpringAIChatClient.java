@@ -32,7 +32,7 @@ public class SpringAIChatClient {
         this.chatClient = chatClientBuilder.build();
     }
 
-    public String generateResponse(String userPrompt, String sessionId) {
+    public String generateResponse(String userPrompt, String sessionId, String userId) {
 
         SystemMessage systemMessage = new SystemMessage("You are a skilled and professional workplace coach," +
                 " assisting employees with difficult situations or mental health issues. " +
@@ -52,7 +52,7 @@ public class SpringAIChatClient {
             messages.add(new UserMessage(interaction.getUserRequest()));
             messages.add(new AssistantMessage(interaction.getAiReply()));
         }
-        List<Interaction> searchResults = rag.hybridSearch(userPrompt, 5, .4f, 5);
+        List<Interaction> searchResults = rag.hybridSearch(userId, userPrompt, 5, .4f, 5);
         searchResults.removeIf(history::contains);
         for (Interaction interaction : searchResults) {
             messages.add(new UserMessage(interaction.getUserRequest()));
@@ -63,7 +63,7 @@ public class SpringAIChatClient {
 
         Prompt prompt = new Prompt(messages);
 
-        System.out.println("Prompt: \n" + prompt);
+        System.out.println(prompt);
 
         String response = chatClient.prompt(prompt).call().content();
 
