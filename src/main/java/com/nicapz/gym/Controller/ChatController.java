@@ -73,29 +73,16 @@ public class ChatController {
 
     @PostMapping("/process-text")
     public void processText(@RequestParam("text") String text, @RequestParam("sessionId") String sessionId) throws IOException {
-        System.out.println(springAIChatClient.generateResponse(text, sessionId));
         messagingTemplate.convertAndSend("/topic/transcription/" + sessionId, text);
-        List<Interaction> history = interactionService.getInteractionsByConversationId(sessionId);
+        String springAiResponse = springAIChatClient.generateResponse(text, sessionId);
         float[] embedding = rag.embedPrompt(text);
-        List<Interaction> ragResults = rag.hybridSearch(text, 3, .4f, 4);
-        ragResults.removeIf(history::contains);
+        System.out.println(springAiResponse);
+        messagingTemplate.convertAndSend("/topic/chatReply/" + sessionId, springAiResponse);
 
-        System.out.println("Retrieved interactions: " + ragResults.size() + "\n interactions: ");
-
-        for (Interaction interaction : ragResults) {
-            System.out.println(interaction.toString());
-        }
-
-        String chatReply = streamGPTResponse.getChatGPTReply(sessionId, text, history, ragResults);
-        messagingTemplate.convertAndSend("/topic/chatReply/" + sessionId, chatReply);
-        System.out.println(chatReply);
-
-        byte[] audioBytes = whisperT2SService.synthesizeSpeech(chatReply);
+        byte[] audioBytes = whisperT2SService.synthesizeSpeech(springAiResponse);
         String audio = Base64.getEncoder().encodeToString(audioBytes);
         messagingTemplate.convertAndSend("/topic/audio/" + sessionId, audio);
-
-        interactionService.saveInteractionWithVector(text, chatReply, sessionId, embedding);
-
+        interactionService.saveInteractionWithVector(text, springAiResponse, sessionId, embedding);
         System.out.println("... interaction saved ...");
     }
 }

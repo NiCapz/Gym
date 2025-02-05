@@ -60,10 +60,14 @@ public class RAG {
     }
 
     public String extractKeywords(String input) {
-        return this.chatCLient.prompt()
+
+        String keywords = this.chatCLient.prompt()
                 .user("Extract the most important keywords from the following text. If you cannot discern any Keywords, simply return null." +
-                        " Return the keywords as a | separated list: " + input)
+                        "Put a | between all extracted keywords, even if they belong together, as in \"Magnolia | flowers\" instead of \"Magnolia Flowers\". Text: " + input)
                 .call()
                 .content();
+        System.out.println(keywords);
+
+        return keywords;
     }
  }
