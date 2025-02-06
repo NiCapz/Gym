@@ -24,7 +24,6 @@ public class EmbeddingsGenerator implements CommandLineRunner {
         this.embeddingModel = embeddingModel;
     }
 
-
     public void generateAll() {
         System.out.println("Generating embeddings...");
 

@@ -2,6 +2,7 @@ package com.nicapz.gym.Controller;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.nicapz.gym.Functions.UserContext;
 import com.nicapz.gym.Model.Interaction;
 import com.nicapz.gym.Service.*;
 import org.springframework.ai.chat.client.ChatClient;
@@ -26,11 +27,10 @@ public class ChatController {
     private final WhisperService whisperService = new WhisperService();
     private final WhisperT2SService whisperT2SService = new WhisperT2SService();
     private final StreamGPTResponse streamGPTResponse;
+    private final UserContext userContext;
 
     @Autowired
     private SpringAIChatClient springAIChatClient;
-    @Autowired
-    private JdbcClient jdbcClient;
     @Autowired
     InteractionService interactionService;
     @Autowired
@@ -39,8 +39,9 @@ public class ChatController {
     public RAG rag;
 
     @Autowired
-    public ChatController(StreamGPTResponse streamGPTResponse, SpringAIChatClient springAIChatClient) {
+    public ChatController(StreamGPTResponse streamGPTResponse, UserContext userContext) {
         this.streamGPTResponse = streamGPTResponse;
+        this.userContext = userContext;
     }
 /*
     @PostMapping("/process-audio")
@@ -73,6 +74,7 @@ public class ChatController {
 
     @PostMapping("/process-text")
     public void processText(@RequestParam("text") String text, @RequestParam("sessionId") String sessionId, @RequestParam("userId") String userId) throws IOException {
+        userContext.setUserId(userId);
         System.out.println("user ID: " + userId);
         messagingTemplate.convertAndSend("/topic/transcription/" + sessionId, text);
         String springAiResponse = springAIChatClient.generateResponse(text, sessionId, userId);

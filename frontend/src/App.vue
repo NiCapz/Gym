@@ -22,6 +22,7 @@
     <button @click="processText">Send written query</button>
   </div>
   <span>User ID</span><input v-model="userId" type="number" min="1">
+  <span>User Mood: {{ userMood }}</span>
 </main>
 </template>
 
@@ -51,19 +52,21 @@ export default {
       transcribeTextURL: 'http://localhost:8080/api/chat/process-text',
       recordButtonText: 'Start Recording',
       textInput: '',
+      userMood: "%",
 
       interactions: [],
 
       client: null,
       socket: null,
       sessionId: '',
-      userId: 1,
+      userId: '',
       connected: false
     }
   },
 
   created() {
     this.sessionId = Math.floor(Math.random() * 100000);
+    this.userId = Math.floor(Math.random() * 100000);
     console.log(this.sessionId);
     this.client = new Client({
       webSocketFactory: () => new WebSocket('ws:localhost:8080/transcription-websocket'),
@@ -107,6 +110,24 @@ export default {
           this.reply = null;
           this.sound = null;
       }
+    });
+
+    },
+
+    subscribeToMoodUpdates() {
+      console.log("Subscribed to mood updates with Id " + this.userId)
+      this.client.subscribe(`/topic/moodUpdates/${this.userId}`, message => {
+      console.log("user mood:"  + message.body);
+      const result = message.body
+      
+      switch(result) {
+        case "1": this.userMood = "Extremely bad 😭"
+        case "2": this.userMood = "Bad😞"
+        case "3": this.userMood = "Neutral 😐"
+        case "4": this.userMood = "Good 😊"
+        case "5": this.userMood = "Extremely good! 😄"
+      }
+      console.log(this.userMood)
     });
     },
 
@@ -183,6 +204,9 @@ export default {
     },
     
     async processText() {
+      this.subscribeToMoodUpdates()
+      console.log(`/topic/moodUpdates/${this.userId}`)
+      console.log(this.userId)
       const text = this.textInput
       this.textInput = '';  
       if (text != '') {
