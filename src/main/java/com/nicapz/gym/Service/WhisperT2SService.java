@@ -34,10 +34,10 @@ public class WhisperT2SService {
 
     private static StringEntity makeJsonBody(String text) throws UnsupportedEncodingException {
         Map<String, Object> jsonBody = new HashMap<>();
-        jsonBody.put("model", "tts-1");
+        jsonBody.put("model", "tts-1-hd");
         jsonBody.put("input", text);
-        jsonBody.put("voice", "onyx");
-        jsonBody.put("speed", 1.5);
+        jsonBody.put("voice", "fable");
+        jsonBody.put("speed", 1);
         Gson gson = new Gson();
         String json = gson.toJson(jsonBody);
         return new StringEntity(json);

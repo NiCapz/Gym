@@ -23,6 +23,10 @@
   </div>
   <span>User ID</span><input v-model="userId" type="number" min="1">
   <span>User Mood: {{ userMood }}</span>
+
+  <div v-if="gameVisible">
+    <ClickSpeedGame />
+  </div>
 </main>
 </template>
 
@@ -34,10 +38,14 @@
 import { MediaRecorder, register } from 'extendable-media-recorder'
 import { connect } from 'extendable-media-recorder-wav-encoder'
 import { Client } from '@stomp/stompjs'
+import ClickSpeedGame from './components/ClickSpeedGame.vue';
 </script>
 
 <script>
 export default {
+  components: {
+    ClickSpeedGame
+  },
   data() {
     return {
       mediaRecorder: null,
@@ -60,7 +68,9 @@ export default {
       socket: null,
       sessionId: '',
       userId: '',
-      connected: false
+      connected: false,
+
+      gameVisible: false
     }
   },
 
@@ -112,6 +122,11 @@ export default {
       }
     });
 
+      this.client.subscribe('/topic/game/'), message => {
+        console.log(message)
+        this.gameVisible = true
+      }
+
     },
 
     subscribeToMoodUpdates() {
@@ -126,6 +141,8 @@ export default {
         case "3": this.userMood = "Neutral 😐"
         case "4": this.userMood = "Good 😊"
         case "5": this.userMood = "Extremely good! 😄"
+                  this.gameVisible = true
+
       }
       console.log(this.userMood)
     });

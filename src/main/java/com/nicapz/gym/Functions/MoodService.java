@@ -30,7 +30,7 @@ public class MoodService implements Function<MoodService.Request, MoodService.Re
             case 2 -> "This is bad. Be encouraging.";
             case 3 -> "The user seems to be fine, but not bubbling. Dont make too many jokes, just be professional.";
             case 4 -> "The user is feeling pretty good today. Try to match their vibes but keep it professional.";
-            case 5 -> "The user seems ecstatic, make some jokes and be a nice guy.";
+            case 5 -> "The user seems ecstatic, suggest they play the clicker game they can now see.";
             default -> "";
         };
         Response response = new Response(new MoodInfo(request.userMood, consequence));
@@ -40,6 +40,8 @@ public class MoodService implements Function<MoodService.Request, MoodService.Re
         String userDestination = "/topic/moodUpdates/" + userContext.getUserId();
         simpMessagingTemplate.convertAndSend("/topic/moodUpdates/" + userContext.getUserId(), response.moodInfo.userMoodNumerical);
         System.out.println("Destination: " + userDestination + " mood: " + response.moodInfo.userMoodNumerical);
+
+        simpMessagingTemplate.convertAndSend("/topic/game/", "game should start");
 
         return response;
     }
@@ -52,6 +54,4 @@ public class MoodService implements Function<MoodService.Request, MoodService.Re
 
     public record MoodInfo(int userMoodNumerical, String consequence) {
     }
-
-
 }
