@@ -136,14 +136,30 @@ export default {
       const result = message.body
       
       switch(result) {
-        case "1": this.userMood = "Extremely bad 😭"
-        case "2": this.userMood = "Bad😞"
-        case "3": this.userMood = "Neutral 😐"
-        case "4": this.userMood = "Good 😊"
-        case "5": this.userMood = "Extremely good! 😄"
-                  this.gameVisible = true
+        case "1":
+           this.userMood = "Extremely bad 😭"
+            break;
+        case "2":
+           this.userMood = "Bad😞"
+            break;
+        case "3":
+           this.userMood = "Neutral 😐"
+            break;
+        case "4":
+           this.userMood = "Good 😊"
+            break;
+        case "5":
+           this.userMood = "Extremely good! 😄"
+           this.gameVisible = true
+           break;
 
       }
+      switch(result) {
+
+      }
+
+
+
       console.log(this.userMood)
     });
     },

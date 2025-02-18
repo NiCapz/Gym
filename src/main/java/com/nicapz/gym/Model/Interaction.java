@@ -1,5 +1,4 @@
 package com.nicapz.gym.Model;
-import java.util.stream.Collectors;
 import jakarta.persistence.*;
 import lombok.Getter;
 

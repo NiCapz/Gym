@@ -68,7 +68,7 @@ public class RAG {
 
         String keywords = this.chatCLient.prompt()
                 .user("Extract the most important keywords from the following text. If you cannot discern any Keywords, simply return null." +
-                        "Put a | between all extracted keywords, even if they belong together, as in \"Magnolia | flowers\" instead of \"Magnolia Flowers\". Text: " + input)
+                        "Put a | between all extracted keywords. If they belong together, serperate them with a | regardless, as in \"current | situation\" instead of \"current situation\". Text: " + input)
                 .call()
                 .content();
         System.out.println(keywords);
