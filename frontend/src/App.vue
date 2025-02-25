@@ -101,6 +101,9 @@ export default {
         const result = message.body;
         this.reply = result;
         console.log(this.reply)
+        if (this.userMood == "Extremely good! 😄") {
+          this.gameVisible = true;
+        }
       });
 
       this.client.subscribe(`/topic/replyChunk/${this.sessionId}`, message => {
@@ -150,7 +153,7 @@ export default {
             break;
         case "5":
            this.userMood = "Extremely good! 😄"
-           this.gameVisible = true
+           //this.gameVisible = true
            break;
 
       }

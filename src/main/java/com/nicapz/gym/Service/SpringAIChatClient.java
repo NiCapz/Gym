@@ -48,7 +48,7 @@ public class SpringAIChatClient {
 
         LocalTime now = LocalTime.now();
 
-        if (now.isAfter(LocalTime.of(0, 0)) && now.isBefore(LocalTime.of(23, 0))) {
+        if (now.isAfter(LocalTime.of(0, 0)) && now.isBefore(LocalTime.of(6, 0))) {
             systemMessageTemplate = systemMessageTemplate + "it is currently 5am, " +
                     "so please be extraordinarily sensitive with how you speak to the user, " +
                     "since they may be especially vulnerable.";
