@@ -14,7 +14,8 @@
     "extendable-media-recorder": "^9.2.17",
     "extendable-media-recorder-wav-encoder": "^7.0.121",
     "playht": "^0.13.0",
-    "vue": "^3.5.12"
+    "vue": "^3.5.12",
+    "vue-spinner": "^1.0.4"
   },
   "devDependencies": {
     "@iconify/vue": "^4.1.2",

@@ -1,14 +1,29 @@
 <template>
   <main>
+    <div v-if="breathingVisible">
+      <BreathingExcercise/>
+      <hr>
+    </div>
+    <div v-if="gameVisible">
+      <ClickSpeedGame />
+      <hr>
+    </div>
     <div>
       <li v-for="interaction in interactions">
-        <p>User: {{ interaction[0] }}</p>
-        <p>AI: {{ interaction[1] }}</p>
+        <p v-if="interaction[0]">User: {{ interaction[0] }}</p>
+        <p v-if="interaction[1]">AI: {{ interaction[1] }}</p>
       </li>
       <li>
         <p v-if="transcription">User: {{ transcription }}</p>
         <p v-if="reply">AI: {{ reply }}</p>
       </li>
+      <div class="buttons">
+        <BounceLoader v-if="loading" color="#FFFFFF" size="30px"/>
+      </div>
+      <div v-if="suggestGame" class="buttons">
+        <button @click="cancelGameStart">Maybe another time.</button>
+        <button @click="startGame">Sure, let's go!</button>
+      </div>
       <hr class="ruler">
       <textarea
       v-model="textInput"
@@ -19,14 +34,10 @@
   </div>
   <div class="buttons">
     <button @click="toggleRecording">{{ recordButtonText }}</button>
-    <button @click="processText">Send written query</button>
+    <button @click="sendText">Send text</button>
   </div>
   <span>User ID</span><input v-model="userId" type="number" min="1">
-  <span>User Mood: {{ userMood }}</span>
-
-  <div v-if="gameVisible">
-    <ClickSpeedGame />
-  </div>
+  <span v-if="userMood">User Mood: {{ userMood }}</span>
 </main>
 </template>
 
@@ -38,7 +49,9 @@
 import { MediaRecorder, register } from 'extendable-media-recorder'
 import { connect } from 'extendable-media-recorder-wav-encoder'
 import { Client } from '@stomp/stompjs'
+import BounceLoader from 'vue-spinner/src/BounceLoader.vue'
 import ClickSpeedGame from './components/ClickSpeedGame.vue';
+import BreathingExcercise from './components/BreathingExcercise.vue';
 </script>
 
 <script>
@@ -58,9 +71,12 @@ export default {
       audioUrl: '',
       transcribeURL: 'http://localhost:8080/api/chat/process-audio',
       transcribeTextURL: 'http://localhost:8080/api/chat/process-text',
+      welcomeUrl: 'http://localhost:8080/api/chat/initiate-session',
       recordButtonText: 'Start Recording',
       textInput: '',
-      userMood: "%",
+      userMood: '',
+      
+      loading: true,
 
       interactions: [],
 
@@ -69,8 +85,13 @@ export default {
       sessionId: '',
       userId: '',
       connected: false,
-
-      gameVisible: false
+      
+      confirmText: '',
+      denyText: '',
+      selectedGame: 0,
+      suggestGame: false,
+      gameVisible: false,
+      breathingVisible: false,
     }
   },
 
@@ -86,9 +107,33 @@ export default {
       }
     });
     this.client.activate();
+    
+    this.welcomeUser();
+    
+
   },
 
   methods: {
+    
+    async welcomeUser() {
+      try {
+            const formData = new FormData();
+            formData.append('sessionId', this.sessionId)
+            formData.append('userId', this.userId)
+  
+            const response = await fetch(this.welcomeUrl, {
+              method: 'POST',
+              body: formData
+            });
+  
+            if (!response.ok) {
+              throw new Error(`Http Error! Status: ${response.status}`)
+            }
+          }
+          catch (error) {
+            console.error("Error processing text:", error);
+          }
+    },
 
     subscribeToTranscriptions() {
       this.client.subscribe(`/topic/transcription/${this.sessionId}`, message => {
@@ -114,11 +159,12 @@ export default {
         const result = message.body;
         this.sound = new Audio("data:audio/mp3;base64," + result);
         this.sound.play();
-        if (this.transcription && this.reply && this.sound) {
-          this.interactions.push([this.transcription, this.reply, this.sound]);
+        if (this.reply) {
+          this.loading = false;
+          this.interactions.push([this.transcription, this.reply]);
           this.transcription = null;
           this.reply = null;
-          this.sound = null;
+          //this.sound = null;
       }
     });
 
@@ -127,6 +173,32 @@ export default {
         this.gameVisible = true
       }
 
+    },
+
+    startGame() {
+
+      this.gameVisible = true;
+      this.processText(this.confirmText);
+    },
+
+    cancelGameStart() {
+      this.processText(this.denyText);
+    },
+
+    selectGame(gameNumber) {
+      this.suggestGame = true;
+        switch(gameNumber) {
+          case 0:
+            this.selectedGame = 0;
+            this.confirmText = "Yes, lets play the clicker game!"
+            this.denyText = "Thanks, maybe another time."
+            break;
+          case 1:
+            this.selectedGame = 1;
+            var confirmtext = "Yes, lets do the breathing exercise."
+            var denyText = "Thanks, maybe another time."
+            break;
+        }
     },
 
     subscribeToMoodUpdates() {
@@ -138,27 +210,26 @@ export default {
       switch(result) {
         case "1":
            this.userMood = "Extremely bad 😭"
-            break;
+           this.selectGame(1);
+           break;
         case "2":
            this.userMood = "Bad😞"
+           this.selectGame(1);
             break;
         case "3":
            this.userMood = "Neutral 😐"
+           this.selectGame(1);
             break;
         case "4":
            this.userMood = "Good 😊"
-            break;
+           this.selectGame(0);
+           break;
         case "5":
            this.userMood = "Extremely good! 😄"
-           this.gameVisible = true
+           this.selectGame(0);
            break;
 
       }
-      switch(result) {
-
-      }
-
-
 
       console.log(this.userMood)
     });
@@ -236,12 +307,16 @@ export default {
       }
     },
     
-    async processText() {
-      this.subscribeToMoodUpdates()
-      console.log(`/topic/moodUpdates/${this.userId}`)
-      console.log(this.userId)
+    async sendText() {
       const text = this.textInput
+      this.processText(text);
       this.textInput = '';  
+    },
+
+    async processText(text) {
+      this.loading = true;
+      this.subscribeToMoodUpdates()
+      console.log("user Id: " + this.userId)
       if (text != '') {
           try {
             const formData = new FormData();
@@ -264,6 +339,8 @@ export default {
           this.textInput = '';
         }
     },
+
+   
   }
 }
 </script>
