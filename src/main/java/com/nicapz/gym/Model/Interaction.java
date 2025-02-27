@@ -20,13 +20,29 @@ public class Interaction {
     @Getter
     private String userId;
 
-    @Getter
+
     @Column(length = 1000)
     private String userRequest;
 
-    @Getter
+
     @Column(length = 10000)
     private String aiReply;
+
+    public String getUserRequest() {
+        return userRequest;
+    }
+
+    public void setUserRequest(String userRequest) {
+        this.userRequest = userRequest;
+    }
+
+    public String getAiReply() {
+        return aiReply;
+    }
+
+    public void setAiReply(String aiReply) {
+        this.aiReply = aiReply;
+    }
 
     public String toString() {
         return "User: " + userRequest + " Assistant: " + aiReply;
