@@ -39,10 +39,8 @@ public class MoodService implements Function<MoodService.Request, MoodService.Re
 
         String userDestination = "/topic/moodUpdates/" + userContext.getUserId();
         simpMessagingTemplate.convertAndSend("/topic/moodUpdates/" + userContext.getUserId(), response.moodInfo.userMoodNumerical);
-        System.out.println("User ID: " + userContext.getUserId());
+        System.out.println("MoodService 42: User ID: " + userContext.getUserId());
         System.out.println("Destination: " + userDestination + " mood: " + response.moodInfo.userMoodNumerical);
-
-        simpMessagingTemplate.convertAndSend("/topic/game/", "game should start");
 
         return response;
     }

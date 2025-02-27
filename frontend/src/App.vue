@@ -1,5 +1,9 @@
 <template>
   <main>
+    <div v-if="!sessionStarted">
+      <button @click="welcomeUser">Start Session</button>
+    </div>
+    <div v-if="sessionStarted">
     <div v-if="breathingVisible">
       <BreathingExcercise/>
       <hr>
@@ -38,6 +42,7 @@
   </div>
   <span>User ID</span><input v-model="userId" type="number" min="1">
   <span v-if="userMood">User Mood: {{ userMood }}</span>
+</div>
 </main>
 </template>
 
@@ -50,8 +55,8 @@ import { MediaRecorder, register } from 'extendable-media-recorder'
 import { connect } from 'extendable-media-recorder-wav-encoder'
 import { Client } from '@stomp/stompjs'
 import BounceLoader from 'vue-spinner/src/BounceLoader.vue'
-import ClickSpeedGame from './components/ClickSpeedGame.vue';
-import BreathingExcercise from './components/BreathingExcercise.vue';
+import ClickSpeedGame from './components/ClickSpeedGame.vue'
+import BreathingExcercise from './components/BreathingExcercise.vue'
 </script>
 
 <script>
@@ -72,6 +77,7 @@ export default {
       transcribeURL: 'http://localhost:8080/api/chat/process-audio',
       transcribeTextURL: 'http://localhost:8080/api/chat/process-text',
       welcomeUrl: 'http://localhost:8080/api/chat/initiate-session',
+      buttonUrl: 'http://localhost:8080/api/chat/process-button',
       recordButtonText: 'Start Recording',
       textInput: '',
       userMood: '',
@@ -92,6 +98,8 @@ export default {
       suggestGame: false,
       gameVisible: false,
       breathingVisible: false,
+
+      sessionStarted: false,
     }
   },
 
@@ -108,7 +116,7 @@ export default {
     });
     this.client.activate();
     
-    this.welcomeUser();
+    
     
 
   },
@@ -116,6 +124,9 @@ export default {
   methods: {
     
     async welcomeUser() {
+
+      this.sessionStarted = true;
+
       try {
             const formData = new FormData();
             formData.append('sessionId', this.sessionId)
@@ -164,25 +175,29 @@ export default {
           this.interactions.push([this.transcription, this.reply]);
           this.transcription = null;
           this.reply = null;
-          //this.sound = null;
       }
     });
-
-      this.client.subscribe('/topic/game/'), message => {
-        console.log(message)
-        this.gameVisible = true
-      }
-
     },
 
     startGame() {
-
       this.gameVisible = true;
-      this.processText(this.confirmText);
+      switch(this.selectedGame) {
+        case 0:
+          this.processButton("The user has accepted playing the clicker game. This message is generated, they havent typed any input. You are not responsible for the game and you dont control it, just reply with 'great, have fun!''", this.confirmText);
+        case 1:
+          this.processButton("The user has accepted Doing the brathing exercise. This message is generated, they havent typed any input. You are not responsible for the game and you dont control it, just reply with 'great, have fun!''", this.confirmText);
+        }
+      this.suggestGame = false;
     },
 
     cancelGameStart() {
-      this.processText(this.denyText);
+      switch(this.selectGame) {
+        case 0:
+          this.processButton("The user has denied playing the clicker game. This message is generated, they havent typed any input.", this.denyText);
+        case 1:
+          this.processButton("The user has denied doing the breathing exercie. This message is generated, they havent typed any input.", this.denyText);
+      }
+      this.suggestGame = false;
     },
 
     selectGame(gameNumber) {
@@ -195,8 +210,8 @@ export default {
             break;
           case 1:
             this.selectedGame = 1;
-            var confirmtext = "Yes, lets do the breathing exercise."
-            var denyText = "Thanks, maybe another time."
+            this.confirmtext = "Yes, lets do the breathing exercise."
+            this.denyText = "Thanks, maybe another time."
             break;
         }
     },
@@ -275,7 +290,6 @@ export default {
         this.isRecording = false;
         this.recordButtonText = 'Start Recording';
         this.mediaRecorder.stop();
-        // biome-ignore lint/complexity/noForEach: <explanation>
         this.stream.getTracks().forEach((track) => track.stop());
 
         let audioBlob = new Blob(this.audioChunks, { type: this.mediaRecorder.mimeType });
@@ -325,6 +339,32 @@ export default {
             formData.append('userId', this.userId)
   
             const response = await fetch(this.transcribeTextURL, {
+              method: 'POST',
+              body: formData
+            });
+  
+            if (!response.ok) {
+              throw new Error(`Http Error! Status: ${response.status}`)
+            }
+          }
+          catch (error) {
+            console.error("Error processing text:", error);
+          }
+          this.textInput = '';
+        }
+    },
+    async processButton(prompt, userVisible) {
+      this.loading = true;
+      console.log("user Id: " + this.userId)
+      if (text != '') {
+          try {
+            const formData = new FormData();
+            formData.append('prompt', prompt);
+            formData.append('userVisible', userVisible)
+            formData.append('sessionId', this.sessionId)
+            formData.append('userId', this.userId)
+  
+            const response = await fetch(this.buttonUrl, {
               method: 'POST',
               body: formData
             });

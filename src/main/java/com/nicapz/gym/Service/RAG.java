@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+
 @Service
 public class RAG {
 
@@ -64,15 +66,22 @@ public class RAG {
         return this.embeddingModel.embed(prompt);
     }
 
+    private static final Pattern SPACE_BETWEEN_WORDS = Pattern.compile("""
+            (\\b\\w+)\\s+(\\w+\\b)""");
+
+    public static String formatKeywords(String input) {
+        return SPACE_BETWEEN_WORDS.matcher(input).replaceAll("$1 | $2");
+    }
+
     public String extractKeywords(String input) {
 
         String keywords = this.chatCLient.prompt()
                 .user("Extract the most important keywords from the following text. If you cannot discern any Keywords, simply return null." +
-                        "Put a | between all extracted keywords. If they belong together, serperate them with a | regardless, as in \"current | situation\" instead of \"current situation\". Text: " + input)
+                        "Put a | between all extracted keywords. If they belong together, separate them with a | regardless, as in \"current | situation\" instead of \"current situation\". Text: " + input)
                 .call()
                 .content();
         System.out.println(keywords);
 
-        return keywords;
+        return formatKeywords(keywords);
     }
  }

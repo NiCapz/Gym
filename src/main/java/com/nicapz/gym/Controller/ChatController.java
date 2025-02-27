@@ -83,7 +83,7 @@ public class ChatController {
     @PostMapping("/process-text")
     public void processText(@RequestParam("text") String text, @RequestParam("sessionId") String sessionId, @RequestParam("userId") String userId) throws IOException {
         userContext.setUserId(userId);
-        System.out.println("user ID: " + userId);
+        System.out.println("Controller 86: user ID: " + userId);
         messagingTemplate.convertAndSend("/topic/transcription/" + sessionId, text);
         String springAiResponse = springAIChatClient.generateResponse(text, sessionId, userId);
         byte[] audioBytes = whisperT2SService.synthesizeSpeech(springAiResponse);
@@ -94,6 +94,23 @@ public class ChatController {
 
         float[] embedding = rag.embedPrompt(text);
         interactionService.saveInteractionWithVector(userId, text, springAiResponse, sessionId, embedding);
+        System.out.println("... interaction saved ...");
+    }
+    @PostMapping("/process-button")
+    public void processButton(@RequestParam("prompt") String prompt, @RequestParam("userVisible") String userVisible, @RequestParam("sessionId") String sessionId, @RequestParam("userId") String userId) throws IOException {
+        userContext.setUserId(userId);
+        System.out.println("Controller 86: user ID: " + userId);
+        messagingTemplate.convertAndSend("/topic/transcription/" + sessionId, userVisible
+        );
+        String springAiResponse = springAIChatClient.generateResponse(prompt, sessionId, userId);
+        byte[] audioBytes = whisperT2SService.synthesizeSpeech(springAiResponse);
+        String audio = Base64.getEncoder().encodeToString(audioBytes);
+        System.out.println("AI response: " + springAiResponse);
+        messagingTemplate.convertAndSend("/topic/audio/" + sessionId, audio);
+        messagingTemplate.convertAndSend("/topic/chatReply/" + sessionId, springAiResponse);
+
+        float[] embedding = rag.embedPrompt(prompt);
+        interactionService.saveInteractionWithVector(userId, prompt, springAiResponse, sessionId, embedding);
         System.out.println("... interaction saved ...");
     }
 }

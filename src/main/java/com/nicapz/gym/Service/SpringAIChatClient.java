@@ -52,6 +52,7 @@ public class SpringAIChatClient {
         return response;
     }
 
+
     public String generateResponse(String userPrompt, String sessionId, String userId) {
 
         String systemMessageTemplate = "You are a skilled and professional workplace coach, " +
