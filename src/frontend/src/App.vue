@@ -104,7 +104,7 @@ export default {
     this.userId = Math.floor(Math.random() * 100000);
     console.log(this.sessionId);
     this.client = new Client({
-      webSocketFactory: () => new WebSocket('wss:localhost:8080/transcription-websocket'),
+      webSocketFactory: () => new WebSocket('wss:gym.customquake.com/transcription-websocket'),
       reconnectDelay: 5000,
       onConnect: () => {
         this.subscribeToTranscriptions();
