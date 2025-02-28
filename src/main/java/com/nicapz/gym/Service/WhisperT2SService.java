@@ -16,13 +16,11 @@ import java.util.Map;
 @Service
 public class WhisperT2SService {
 
-    private static final String OPENAI_T2S_URL = "https://api.openai.com/v1/audio/speech";
-    private static final String API_KEY = System.getenv("OPENAI_KEY");
 
-    public byte[] synthesizeSpeech(String text) throws IOException {
+    public byte[] synthesizeSpeech(String text, String key) throws IOException {
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpPost request = new HttpPost("https://api.openai.com/v1/audio/speech");
-            request.addHeader("Authorization", "Bearer " + API_KEY);
+            request.addHeader("Authorization", "Bearer " + key);
             request.addHeader("Content-Type", "application/json");
             StringEntity body = makeJsonBody(text);
             request.setEntity(body);

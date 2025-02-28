@@ -4,46 +4,42 @@
       <button @click="welcomeUser">Start Session</button>
     </div>
     <div v-if="sessionStarted">
-    <div v-if="breathingVisible">
-      <BreathingExcercise/>
-      <hr>
-    </div>
-    <div v-if="gameVisible">
-      <ClickSpeedGame />
-      <hr>
-    </div>
-    <div>
-      <li v-for="interaction in interactions">
-        <p v-if="interaction[0]">User: {{ interaction[0] }}</p>
-        <p v-if="interaction[1]">AI: {{ interaction[1] }}</p>
-      </li>
-      <li>
-        <p v-if="transcription">User: {{ transcription }}</p>
-        <p v-if="reply">AI: {{ reply }}</p>
-      </li>
-      <div class="buttons">
-        <BounceLoader v-if="loading" color="#FFFFFF" size="30px"/>
+      <div v-if="breathingVisible">
+        <BreathingExcercise />
+        <hr>
       </div>
-      <div v-if="suggestGame" class="buttons">
-        <button @click="cancelGameStart">Maybe another time.</button>
-        <button @click="startGame">Sure, let's go!</button>
+      <div v-if="gameVisible">
+        <ClickSpeedGame />
+        <hr>
       </div>
-      <hr class="ruler">
-      <textarea
-      v-model="textInput"
-      rows="5" 
-      cols="50"
-      placeholder="">
+      <div>
+        <li v-for="interaction in interactions">
+          <p v-if="interaction[0]">User: {{ interaction[0] }}</p>
+          <p v-if="interaction[1]">AI: {{ interaction[1] }}</p>
+        </li>
+        <li>
+          <p v-if="transcription">User: {{ transcription }}</p>
+          <p v-if="reply">AI: {{ reply }}</p>
+        </li>
+        <div class="buttons">
+          <BounceLoader v-if="loading" color="#FFFFFF" size="30px" />
+        </div>
+        <div v-if="suggestGame" class="buttons">
+          <button @click="cancelGameStart">Maybe another time.</button>
+          <button @click="startGame">Sure, let's go!</button>
+        </div>
+        <hr class="ruler">
+        <textarea v-model="textInput" rows="5" cols="50" placeholder="">
     </textarea>
-  </div>
-  <div class="buttons">
-    <button @click="toggleRecording">{{ recordButtonText }}</button>
-    <button @click="sendText">Send text</button>
-  </div>
-  <span>User ID</span><input v-model="userId" type="number" min="1">
-  <span v-if="userMood">User Mood: {{ userMood }}</span>
-</div>
-</main>
+      </div>
+      <div class="buttons">
+        <button @click="toggleRecording">{{ recordButtonText }}</button>
+        <button @click="sendText">Send text</button>
+      </div>
+      <span>User ID</span><input v-model="userId" type="number" min="1">
+      <span v-if="userMood">User Mood: {{ userMood }}</span>
+    </div>
+  </main>
 </template>
 
 
@@ -81,7 +77,7 @@ export default {
       recordButtonText: 'Start Recording',
       textInput: '',
       userMood: '',
-      
+
       loading: true,
 
       interactions: [],
@@ -91,7 +87,7 @@ export default {
       sessionId: '',
       userId: '',
       connected: false,
-      
+
       confirmText: '',
       denyText: '',
       selectedGame: 0,
@@ -115,35 +111,35 @@ export default {
       }
     });
     this.client.activate();
-    
-    
-    
+
+
+
 
   },
 
   methods: {
-    
+
     async welcomeUser() {
 
       this.sessionStarted = true;
 
       try {
-            const formData = new FormData();
-            formData.append('sessionId', this.sessionId)
-            formData.append('userId', this.userId)
-  
-            const response = await fetch(this.welcomeUrl, {
-              method: 'POST',
-              body: formData
-            });
-  
-            if (!response.ok) {
-              throw new Error(`Http Error! Status: ${response.status}`)
-            }
-          }
-          catch (error) {
-            console.error("Error processing text:", error);
-          }
+        const formData = new FormData();
+        formData.append('sessionId', this.sessionId)
+        formData.append('userId', this.userId)
+
+        const response = await fetch(this.welcomeUrl, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error(`Http Error! Status: ${response.status}`)
+        }
+      }
+      catch (error) {
+        console.error("Error processing text:", error);
+      }
     },
 
     subscribeToTranscriptions() {
@@ -175,23 +171,23 @@ export default {
           this.interactions.push([this.transcription, this.reply]);
           this.transcription = null;
           this.reply = null;
-      }
-    });
+        }
+      });
     },
 
     startGame() {
       this.gameVisible = true;
-      switch(this.selectedGame) {
+      switch (this.selectedGame) {
         case 0:
           this.processButton("The user has accepted playing the clicker game. This message is generated, they havent typed any input. You are not responsible for the game and you dont control it, just reply with 'great, have fun!''", this.confirmText);
         case 1:
           this.processButton("The user has accepted Doing the brathing exercise. This message is generated, they havent typed any input. You are not responsible for the game and you dont control it, just reply with 'great, have fun!''", this.confirmText);
-        }
+      }
       this.suggestGame = false;
     },
 
     cancelGameStart() {
-      switch(this.selectGame) {
+      switch (this.selectGame) {
         case 0:
           this.processButton("The user has denied playing the clicker game. This message is generated, they havent typed any input.", this.denyText);
         case 1:
@@ -202,52 +198,52 @@ export default {
 
     selectGame(gameNumber) {
       this.suggestGame = true;
-        switch(gameNumber) {
-          case 0:
-            this.selectedGame = 0;
-            this.confirmText = "Yes, lets play the clicker game!"
-            this.denyText = "Thanks, maybe another time."
-            break;
-          case 1:
-            this.selectedGame = 1;
-            this.confirmtext = "Yes, lets do the breathing exercise."
-            this.denyText = "Thanks, maybe another time."
-            break;
-        }
+      switch (gameNumber) {
+        case 0:
+          this.selectedGame = 0;
+          this.confirmText = "Yes, lets play the clicker game!"
+          this.denyText = "Thanks, maybe another time."
+          break;
+        case 1:
+          this.selectedGame = 1;
+          this.confirmtext = "Yes, lets do the breathing exercise."
+          this.denyText = "Thanks, maybe another time."
+          break;
+      }
     },
 
     subscribeToMoodUpdates() {
       console.log("Subscribed to mood updates with Id " + this.userId)
       this.client.subscribe(`/topic/moodUpdates/${this.userId}`, message => {
-      console.log("user mood:"  + message.body);
-      const result = message.body
-      
-      switch(result) {
-        case "1":
-           this.userMood = "Extremely bad 😭"
-           this.selectGame(1);
-           break;
-        case "2":
-           this.userMood = "Bad😞"
-           this.selectGame(1);
-            break;
-        case "3":
-           this.userMood = "Neutral 😐"
-           this.selectGame(1);
-            break;
-        case "4":
-           this.userMood = "Good 😊"
-           this.selectGame(0);
-           break;
-        case "5":
-           this.userMood = "Extremely good! 😄"
-           this.selectGame(0);
-           break;
+        console.log("user mood:" + message.body);
+        const result = message.body
 
-      }
+        switch (result) {
+          case "1":
+            this.userMood = "Extremely bad 😭"
+            this.selectGame(1);
+            break;
+          case "2":
+            this.userMood = "Bad😞"
+            this.selectGame(1);
+            break;
+          case "3":
+            this.userMood = "Neutral 😐"
+            this.selectGame(1);
+            break;
+          case "4":
+            this.userMood = "Good 😊"
+            this.selectGame(0);
+            break;
+          case "5":
+            this.userMood = "Extremely good! 😄"
+            this.selectGame(0);
+            break;
 
-      console.log(this.userMood)
-    });
+        }
+
+        console.log(this.userMood)
+      });
     },
 
     toggleRecording() {
@@ -320,11 +316,11 @@ export default {
         console.error("Error processing audio:", error);
       }
     },
-    
+
     async sendText() {
       const text = this.textInput
       this.processText(text);
-      this.textInput = '';  
+      this.textInput = '';
     },
 
     async processText(text) {
@@ -332,55 +328,55 @@ export default {
       this.subscribeToMoodUpdates()
       console.log("user Id: " + this.userId)
       if (text != '') {
-          try {
-            const formData = new FormData();
-            formData.append('text', text);
-            formData.append('sessionId', this.sessionId)
-            formData.append('userId', this.userId)
-  
-            const response = await fetch(this.transcribeTextURL, {
-              method: 'POST',
-              body: formData
-            });
-  
-            if (!response.ok) {
-              throw new Error(`Http Error! Status: ${response.status}`)
-            }
+        try {
+          const formData = new FormData();
+          formData.append('text', text);
+          formData.append('sessionId', this.sessionId)
+          formData.append('userId', this.userId)
+
+          const response = await fetch(this.transcribeTextURL, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!response.ok) {
+            throw new Error(`Http Error! Status: ${response.status}`)
           }
-          catch (error) {
-            console.error("Error processing text:", error);
-          }
-          this.textInput = '';
         }
+        catch (error) {
+          console.error("Error processing text:", error);
+        }
+        this.textInput = '';
+      }
     },
     async processButton(prompt, userVisible) {
       this.loading = true;
       console.log("user Id: " + this.userId)
       if (text != '') {
-          try {
-            const formData = new FormData();
-            formData.append('prompt', prompt);
-            formData.append('userVisible', userVisible)
-            formData.append('sessionId', this.sessionId)
-            formData.append('userId', this.userId)
-  
-            const response = await fetch(this.buttonUrl, {
-              method: 'POST',
-              body: formData
-            });
-  
-            if (!response.ok) {
-              throw new Error(`Http Error! Status: ${response.status}`)
-            }
+        try {
+          const formData = new FormData();
+          formData.append('prompt', prompt);
+          formData.append('userVisible', userVisible)
+          formData.append('sessionId', this.sessionId)
+          formData.append('userId', this.userId)
+
+          const response = await fetch(this.buttonUrl, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!response.ok) {
+            throw new Error(`Http Error! Status: ${response.status}`)
           }
-          catch (error) {
-            console.error("Error processing text:", error);
-          }
-          this.textInput = '';
         }
+        catch (error) {
+          console.error("Error processing text:", error);
+        }
+        this.textInput = '';
+      }
     },
 
-   
+
   }
 }
 </script>
