@@ -7,7 +7,6 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,9 +46,7 @@ public class SpringAIChatClient {
 
         Prompt prompt  = new Prompt(messages);
 
-        String response = chatClient.prompt(prompt).call().content();
-
-        return response;
+        return chatClient.prompt(prompt).call().content();
     }
 
 
@@ -68,7 +65,7 @@ public class SpringAIChatClient {
 
 
         if (now.isAfter(LocalTime.of(0, 0)) && now.isBefore(LocalTime.of(6, 0))) {
-            systemMessageTemplate = systemMessageTemplate + "it is currently 5am, " +
+            systemMessageTemplate = systemMessageTemplate + "it is currently " + now.getHour() + "am, " +
                     "so please be extraordinarily sensitive with how you speak to the user, " +
                     "since they may be especially vulnerable.";
         }
@@ -106,10 +103,8 @@ public class SpringAIChatClient {
 
         System.out.println(prompt);
 
-        String response = chatClient.prompt(prompt).call().content();
 
-
-        return response;
+        return chatClient.prompt(prompt).call().content();
     }
 
 
