@@ -19,7 +19,7 @@ public class FunctionConfig {
     }
 
     @Bean
-    @Description("Gauge the users mood on a scale of 1 (extremely bad) to 5 (extremely good) based on their tone and the content of their message. Use only the last message supplied to you for this purpose!")
+    @Description("Whenever possible, gauge the users mood on a scale of 1 (extremely bad) to 5 (extremely good) based on their tone and the content of their message. Use only the last assistant and user messages supplied to you for this purpose!")
     public Function<MoodService.Request, MoodService.Response> moodGaugeFunction() {
         return new MoodService(simpMessagingTemplate, userContext);
     }

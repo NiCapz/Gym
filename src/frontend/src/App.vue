@@ -4,11 +4,13 @@
       <button @click="welcomeUser">Start Session</button>
     </div>
     <div v-if="sessionStarted">
-      <div v-if="breathingVisible">
+      <div v-if="gameVisible&&selectedGame===1">
         <BreathingExcercise />
+        <button @click="endGame">End exercise</button>
         <hr>
       </div>
-      <div v-if="gameVisible">
+      <div v-if="gameVisible&&selectedGame===0">
+        <button @click="endGame">End Game</button>
         <ClickSpeedGame />
         <hr>
       </div>
@@ -70,10 +72,10 @@ export default {
       reply: null,
       sound: null,
       audioUrl: '',
-      transcribeURL: 'https://gym.customquake.com/api/chat/process-audio',
-      transcribeTextURL: 'https://gym.customquake.com/api/chat/process-text',
-      welcomeUrl: 'https://gym.customquake.com/api/chat/initiate-session',
-      buttonUrl: 'https://gym.customquake.com/api/chat/process-button',
+      transcribeURL: 'http://localhost:8080/api/chat/process-audio',
+      transcribeTextURL: 'http://localhost:8080/api/chat/process-text',
+      welcomeUrl: 'http://localhost:8080/api/chat/initiate-session',
+      buttonUrl: 'http://localhost:8080/api/chat/process-button',
       recordButtonText: 'Start Recording',
       textInput: '',
       userMood: '',
@@ -104,7 +106,7 @@ export default {
     this.userId = Math.floor(Math.random() * 100000);
     console.log(this.sessionId);
     this.client = new Client({
-      webSocketFactory: () => new WebSocket('wss:gym.customquake.com/transcription-websocket'),
+      webSocketFactory: () => new WebSocket('ws:/localhost:8080/transcription-websocket'),
       reconnectDelay: 5000,
       onConnect: () => {
         this.subscribeToTranscriptions();
@@ -118,6 +120,9 @@ export default {
   },
 
   methods: {
+    endGame() {
+      this.gameVisible = false;
+    },
 
     async welcomeUser() {
 
@@ -197,7 +202,6 @@ export default {
     },
 
     selectGame(gameNumber) {
-      this.suggestGame = true;
       switch (gameNumber) {
         case 0:
           this.selectedGame = 0;
@@ -210,6 +214,7 @@ export default {
           this.denyText = "Thanks, maybe another time."
           break;
       }
+      this.suggestGame = true;
     },
 
     subscribeToMoodUpdates() {
@@ -221,7 +226,6 @@ export default {
         switch (result) {
           case "1":
             this.userMood = "Extremely bad 😭"
-            this.selectGame(1);
             break;
           case "2":
             this.userMood = "Bad😞"

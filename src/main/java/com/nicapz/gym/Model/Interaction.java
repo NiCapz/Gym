@@ -2,10 +2,6 @@ package com.nicapz.gym.Model;
 import jakarta.persistence.*;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Date;
-
 @Entity
 @Table(name = "interactions")
 public class Interaction {

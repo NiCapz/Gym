@@ -24,18 +24,19 @@ public class ChatController {
     private final WhisperT2SService whisperT2SService = new WhisperT2SService();
     private final UserContext userContext;
 
-    @Autowired
-    private SpringAIChatClient springAIChatClient;
-    @Autowired
+    private final SpringAIChatClient springAIChatClient;
+    final
     InteractionService interactionService;
-    @Autowired
-    public SimpMessagingTemplate messagingTemplate;
-    @Autowired
-    public RAG rag;
+    public final SimpMessagingTemplate messagingTemplate;
+    public final RAG rag;
 
     @Autowired
-    public ChatController(UserContext userContext) {
+    public ChatController(UserContext userContext, RAG rag, SimpMessagingTemplate messagingTemplate, InteractionService interactionService, SpringAIChatClient springAIChatClient) {
         this.userContext = userContext;
+        this.rag = rag;
+        this.messagingTemplate = messagingTemplate;
+        this.interactionService = interactionService;
+        this.springAIChatClient = springAIChatClient;
     }
 
     @Value("${app.openai.key}")
@@ -84,7 +85,6 @@ public class ChatController {
     @PostMapping("/process-text")
     public void processText(@RequestParam("text") String text, @RequestParam("sessionId") String sessionId, @RequestParam("userId") String userId) throws IOException {
         userContext.setUserId(userId);
-        System.out.println("Controller 86: user ID: " + userId);
         System.out.println("Userinput: " + text);
         messagingTemplate.convertAndSend("/topic/transcription/" + sessionId, text);
         String springAiResponse = springAIChatClient.generateResponse(text, sessionId, userId);

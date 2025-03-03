@@ -26,7 +26,6 @@ public class GPTResponse {
     private static final String OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions";
     private static final String API_KEY = System.getenv("OPENAI_KEY");
 
-    @Autowired
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired

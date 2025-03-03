@@ -66,12 +66,25 @@ public class RAG {
         return this.embeddingModel.embed(prompt);
     }
 
-    private static final Pattern SPACE_BETWEEN_WORDS = Pattern.compile("""
-            (\\b\\w+)\\s+(\\w+\\b)""");
-
     public static String formatKeywords(String input) {
-        return SPACE_BETWEEN_WORDS.matcher(input).replaceAll("$1 | $2");
+        // Split the input on the '|' delimiter first
+        String[] segments = input.split("\\|");
+        List<String> words = new ArrayList<>();
+
+        for (String segment : segments) {
+            // Trim each segment and split it on one or more whitespace characters
+            String[] tokens = segment.trim().split("\\s+");
+            for (String token : tokens) {
+                if (!token.isEmpty()) {
+                    words.add(token);
+                }
+            }
+        }
+
+        // Join all words with the " | " delimiter
+        return String.join(" | ", words);
     }
+
 
     public String extractKeywords(String input) {
 
@@ -81,7 +94,9 @@ public class RAG {
                 .call()
                 .content();
         System.out.println(keywords);
+        keywords = formatKeywords(keywords);
+        System.out.println(keywords);
 
-        return formatKeywords(keywords);
+        return keywords;
     }
  }

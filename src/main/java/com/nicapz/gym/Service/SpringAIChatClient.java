@@ -21,17 +21,19 @@ public class SpringAIChatClient {
 
     private final ChatClient chatClient;
 
-    @Autowired
+    final
     ChatModel chatModel;
 
-    @Autowired
+    final
     InteractionService interactionService;
-    @Autowired
-    public RAG rag;
+    public final RAG rag;
 
     @Autowired
-    SpringAIChatClient(ChatClient.Builder chatClientBuilder) {
+    SpringAIChatClient(ChatClient.Builder chatClientBuilder, RAG rag, InteractionService interactionService, ChatModel chatModel) {
         this.chatClient = chatClientBuilder.build();
+        this.rag = rag;
+        this.interactionService = interactionService;
+        this.chatModel = chatModel;
     }
 
     public String helloUser(String userGreeting) {
@@ -99,7 +101,6 @@ public class SpringAIChatClient {
 
 
         Prompt prompt = new Prompt(messages, options);
-        //Prompt prompt = new Prompt(messages);
 
         System.out.println(prompt);
 

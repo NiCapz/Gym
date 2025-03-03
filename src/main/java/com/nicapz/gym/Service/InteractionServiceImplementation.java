@@ -11,13 +11,13 @@ import java.util.List;
 @Service
 public class InteractionServiceImplementation implements InteractionService {
 
-    @Autowired
-    private InteractionRepository interactionRepository;
+    private final InteractionRepository interactionRepository;
 
     private final JdbcClient jdbcClient;
 
-    public InteractionServiceImplementation(final JdbcClient jdbcClient) {
+    public InteractionServiceImplementation(final JdbcClient jdbcClient, InteractionRepository interactionRepository) {
         this.jdbcClient = jdbcClient;
+        this.interactionRepository = interactionRepository;
     }
 
     @Override
