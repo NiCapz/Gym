@@ -1,15 +1,20 @@
 <template>
   <main>
     <div v-if="!sessionStarted">
-      <button @click="welcomeUser">Start Session</button>
+      <div>
+        <button @click="welcomeUser">Start Session</button>
+      </div>
+      <div>
+      <span>User ID</span><input v-model="userId" type="number" min="1">
+    </div>
     </div>
     <div v-if="sessionStarted">
-      <div v-if="gameVisible&&selectedGame===1">
+      <div v-if="gameVisible && selectedGame === 1">
         <BreathingExcercise />
         <button @click="endGame">End exercise</button>
         <hr>
       </div>
-      <div v-if="gameVisible&&selectedGame===0">
+      <div v-if="gameVisible && selectedGame === 0">
         <button @click="endGame">End Game</button>
         <ClickSpeedGame />
         <hr>
@@ -38,9 +43,10 @@
         <button @click="toggleRecording">{{ recordButtonText }}</button>
         <button @click="sendText">Send text</button>
       </div>
-      <span>User ID</span><input v-model="userId" type="number" min="1">
       <span v-if="userMood">User Mood: {{ userMood }}</span>
+      <span>User ID: {{ userId }}</span>
     </div>
+
   </main>
 </template>
 
@@ -103,7 +109,7 @@ export default {
 
   created() {
     this.sessionId = Math.floor(Math.random() * 100000);
-    this.userId = Math.floor(Math.random() * 100000);
+    this.userId = 1;
     console.log(this.sessionId);
     this.client = new Client({
       webSocketFactory: () => new WebSocket('ws:/localhost:8080/transcription-websocket'),
@@ -356,7 +362,7 @@ export default {
     async processButton(prompt, userVisible) {
       this.loading = true;
       console.log("user Id: " + this.userId)
-      if (text != '') {
+      if (prompt) {
         try {
           const formData = new FormData();
           formData.append('prompt', prompt);

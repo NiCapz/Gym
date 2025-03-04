@@ -52,5 +52,4 @@ public class InteractionServiceImplementation implements InteractionService {
                 .update();
     }
 
-
 }

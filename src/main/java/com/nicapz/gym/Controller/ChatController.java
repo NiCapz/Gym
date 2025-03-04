@@ -25,12 +25,10 @@ public class ChatController {
     private final UserContext userContext;
 
     private final SpringAIChatClient springAIChatClient;
-    final
-    InteractionService interactionService;
+    final InteractionService interactionService;
     public final SimpMessagingTemplate messagingTemplate;
     public final RAG rag;
 
-    @Autowired
     public ChatController(UserContext userContext, RAG rag, SimpMessagingTemplate messagingTemplate, InteractionService interactionService, SpringAIChatClient springAIChatClient) {
         this.userContext = userContext;
         this.rag = rag;
